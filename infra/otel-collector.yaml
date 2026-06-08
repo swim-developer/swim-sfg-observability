@@ -43,7 +43,7 @@ processors:
 
 exporters:
   otlp/local:
-    endpoint: tempo:4317
+    endpoint: sfg-tempo:4317
     tls:
       insecure: true
 
