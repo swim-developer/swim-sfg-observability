@@ -273,8 +273,9 @@
     },
     {
       "id": 6,
-      "type": "nodeGraph",
-      "title": "Service Map",
+      "type": "table",
+      "title": "Service Map \u2014 connections via Prometheus",
+      "description": "Service edges from traces_service_graph_request_total (Tempo metrics_generator)",
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -282,16 +283,84 @@
         "y": 4
       },
       "datasource": {
-        "uid": "tempo",
-        "type": "tempo"
+        "uid": "prometheus",
+        "type": "prometheus"
       },
       "targets": [
         {
-          "queryType": "serviceMap",
-          "serviceMapQuery": "{.service.name=~\"dnotam.*\"}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "uid": "prometheus",
+            "type": "prometheus"
+          },
+          "expr": "sum by (client, server, connection_type) (increase(traces_service_graph_request_total[15m]))",
+          "instant": true,
+          "format": "table",
+          "legendFormat": ""
         }
-      ]
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "client",
+                "server",
+                "connection_type",
+                "Value"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Value": "requests (15m)"
+            }
+          }
+        }
+      ],
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "requests (15m)",
+            "desc": true
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "requests (15m)"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "id": 7,
