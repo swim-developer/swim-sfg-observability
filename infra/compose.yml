@@ -59,7 +59,7 @@ services:
       - "--web.enable-remote-write-receiver"
 
   grafana:
-    image: docker.io/grafana/grafana:latest
+    image: docker.io/grafana/grafana:12.4.4
     container_name: sfg-grafana
     ports:
       - "3000:3000"

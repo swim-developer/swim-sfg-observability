@@ -31,7 +31,7 @@ datasources:
       nodeGraph:
         enabled: true
       streamingEnabled:
-        search: true
+        search: false
         metrics: false
 
   - name: Loki

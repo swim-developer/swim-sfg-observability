@@ -13,7 +13,7 @@ services:
       - swim-federation
 
   hub-grafana:
-    image: docker.io/grafana/grafana:latest
+    image: docker.io/grafana/grafana:12.4.4
     container_name: sfg-hub-grafana
     ports:
       - "13000:3000"

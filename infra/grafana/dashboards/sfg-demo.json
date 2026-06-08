@@ -273,8 +273,8 @@
     },
     {
       "id": 6,
-      "type": "table",
-      "title": "Service Connections (RED)",
+      "type": "nodeGraph",
+      "title": "Service Map",
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -282,37 +282,16 @@
         "y": 4
       },
       "datasource": {
-        "uid": "prometheus",
-        "type": "prometheus"
+        "uid": "tempo",
+        "type": "tempo"
       },
       "targets": [
         {
-          "refId": "A",
-          "datasource": {
-            "uid": "prometheus",
-            "type": "prometheus"
-          },
-          "expr": "sum by (client, server) (increase(traces_service_graph_request_total[15m]))",
-          "instant": true,
-          "legendFormat": "{{client}} \u2192 {{server}}",
-          "format": "table"
+          "queryType": "serviceMap",
+          "serviceMapQuery": "{.service.name=~\"dnotam.*\"}",
+          "refId": "A"
         }
-      ],
-      "options": {
-        "sortBy": []
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          }
-        },
-        "overrides": []
-      }
+      ]
     },
     {
       "id": 7,
