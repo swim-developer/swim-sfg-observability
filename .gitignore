@@ -33,3 +33,7 @@ agent-tools/
 
 # Screenshots — review before uncommenting
 docs/images/*.png
+
+# Private presentation notes (not for GitHub)
+docs/presentation-guide.md
+.cursor/
