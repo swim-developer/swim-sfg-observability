@@ -176,7 +176,11 @@ No language runtimes required (Mode A runs everything in containers).
 
 ### Windows users — use PowerShell
 
-The `Makefile` is not compatible with Windows. PowerShell scripts are provided as a drop-in replacement. They use **Podman** — [Podman Desktop](https://podman-desktop.io) must be installed and the Podman machine must be running.
+The `Makefile` is not compatible with Windows. PowerShell scripts are provided as a drop-in replacement. They use **Podman** — [Podman Desktop](https://podman-desktop.io) must be installed and running.
+
+**One-time setup — install the Compose provider:**
+
+Open Podman Desktop → **Settings → Resources → Compose → Setup**. This installs `podman-compose` automatically. Alternatively, if Python is available: `pip install podman-compose`.
 
 | `make` command | PowerShell equivalent |
 |---|---|
