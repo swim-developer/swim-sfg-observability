@@ -180,7 +180,15 @@ The `Makefile` is not compatible with Windows. PowerShell scripts are provided a
 
 **One-time setup — install the Compose provider:**
 
-Open Podman Desktop → **Settings → Resources → Compose → Setup**. This installs `podman-compose` automatically. Alternatively, if Python is available: `pip install podman-compose`.
+`podman compose` requires an external tool. Install one of the following (pick whichever matches what you already have):
+
+| Tool | Command |
+|---|---|
+| Chocolatey | `choco install podman-compose` |
+| Python / pip | `pip install podman-compose` |
+| Podman Desktop UI | Settings → Resources → Compose → Setup (see [Podman Desktop docs](https://podman-desktop.io/docs/compose/setting-up-compose)) |
+
+Verify with `podman compose version` before proceeding.
 
 | `make` command | PowerShell equivalent |
 |---|---|
