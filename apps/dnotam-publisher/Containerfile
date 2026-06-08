@@ -1,11 +1,9 @@
 FROM docker.io/maven:3.9-eclipse-temurin-25 AS builder
 WORKDIR /build
 COPY pom.xml .
-COPY .mvn/ .mvn/
-COPY mvnw .
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -q
+RUN mvn dependency:go-offline -q
 COPY src/ src/
-RUN ./mvnw clean package -DskipTests -q
+RUN mvn clean package -DskipTests -q
 
 FROM docker.io/eclipse-temurin:25-jre
 WORKDIR /deployments

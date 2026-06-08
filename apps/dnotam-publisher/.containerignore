@@ -1,4 +1,6 @@
 target/
 README.md
 .git
+.mvn/
+mvnw
 mvnw.cmd
