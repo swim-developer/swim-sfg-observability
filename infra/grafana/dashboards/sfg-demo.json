@@ -331,7 +331,7 @@
       "targets": [
         {
           "queryType": "traceql",
-          "query": "{resource.service.name =~ \"dnotam.*\"}",
+          "query": "{.service.name =~ \"dnotam.*\"}",
           "refId": "A",
           "limit": 20,
           "tableType": "traces"
