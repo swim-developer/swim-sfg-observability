@@ -1,7 +1,7 @@
 services:
 
   hub-tempo:
-    image: grafana/tempo:2.6.1
+    image: docker.io/grafana/tempo:2.6.1
     container_name: sfg-hub-tempo
     command: ["-config.file=/etc/tempo.yaml"]
     ports:
@@ -13,7 +13,7 @@ services:
       - swim-federation
 
   hub-grafana:
-    image: grafana/grafana:latest
+    image: docker.io/grafana/grafana:latest
     container_name: sfg-hub-grafana
     ports:
       - "13000:3000"

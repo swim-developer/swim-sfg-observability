@@ -3,7 +3,7 @@ services:
   # ── Infrastructure ────────────────────────────────────────────────────────
 
   artemis:
-    image: apache/activemq-artemis:2.40.0-alpine
+    image: docker.io/apache/activemq-artemis:2.40.0-alpine
     container_name: sfg-artemis
     ports:
       - "5672:5672"
@@ -20,7 +20,7 @@ services:
       start_period: 20s
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.123.0
+    image: docker.io/otel/opentelemetry-collector-contrib:0.123.0
     container_name: sfg-otel-collector
     command: ["--config=/etc/otel-collector.yaml"]
     ports:
@@ -35,7 +35,7 @@ services:
       - tempo
 
   tempo:
-    image: grafana/tempo:2.6.1
+    image: docker.io/grafana/tempo:2.6.1
     container_name: sfg-tempo
     command: ["-config.file=/etc/tempo.yaml"]
     ports:
@@ -44,14 +44,14 @@ services:
       - ./tempo.yaml:/etc/tempo.yaml:ro
 
   loki:
-    image: grafana/loki:latest
+    image: docker.io/grafana/loki:latest
     container_name: sfg-loki
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
 
   prometheus:
-    image: prom/prometheus:latest
+    image: docker.io/prom/prometheus:latest
     container_name: sfg-prometheus
     ports:
       - "9090:9090"
@@ -62,7 +62,7 @@ services:
       - "--web.enable-remote-write-receiver"
 
   grafana:
-    image: grafana/grafana:latest
+    image: docker.io/grafana/grafana:latest
     container_name: sfg-grafana
     ports:
       - "3000:3000"
