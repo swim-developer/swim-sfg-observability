@@ -4,6 +4,9 @@ server:
 
 stream_over_http_enabled: true
 
+live_store:
+  max_trace_idle: 5s
+
 distributor:
   receivers:
     otlp:

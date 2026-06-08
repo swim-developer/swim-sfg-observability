@@ -68,8 +68,8 @@ service:
       processors: [batch]
       exporters: [otlp/local]
 
-    # Federated export — only curated aviation business attributes reach the hub.
-    traces/hub:
-      receivers: [otlp]
-      processors: [transform/hub-sanitize, batch]
-      exporters: [otlp/hub]
+    # Federated export — enabled when hub stack is running (make hub-up).
+    # traces/hub:
+    #   receivers: [otlp]
+    #   processors: [transform/hub-sanitize, batch]
+    #   exporters: [otlp/hub]
