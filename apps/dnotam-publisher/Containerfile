@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25-jre
+FROM docker.io/eclipse-temurin:25-jre
 WORKDIR /deployments
 COPY target/quarkus-app/lib/ lib/
 COPY target/quarkus-app/*.jar .
