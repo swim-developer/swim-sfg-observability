@@ -94,18 +94,9 @@ services:
       OTLP_ENDPOINT: http://otel-collector:4317
       LOKI_OTLP_ENDPOINT: http://loki:3100/otlp
     depends_on:
-      artemis:
-        condition: service_healthy
-      otel-collector:
-        condition: service_started
-      loki:
-        condition: service_started
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'cat /dev/null > /dev/tcp/localhost/8080' 2>/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 15s
+      - artemis
+      - otel-collector
+      - loki
 
   dnotam-consumer:
     image: sfg-dnotam-consumer:latest
@@ -121,7 +112,7 @@ services:
       LOKI_OTLP_ENDPOINT: http://loki:3100/otlp/v1/logs
     depends_on:
       artemis:
-        condition: service_healthy
+        condition: service_started
       otel-collector:
         condition: service_started
       loki:
@@ -139,7 +130,7 @@ services:
       LOKI_OTLP_ENDPOINT: http://loki:3100/otlp/v1/logs
     depends_on:
       dnotam-publisher:
-        condition: service_healthy
+        condition: service_started
 
 networks:
   default: {}
