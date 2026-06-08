@@ -174,24 +174,30 @@ Open http://localhost:13000 (Hub Grafana) for the federation-level trace view.
 
 No language runtimes required (Mode A runs everything in containers).
 
-### Windows users — required setup before anything else
+### Windows users — two options
 
-The `Makefile` requires a Unix shell (`bash`). On Windows, all commands must be run inside **WSL2** — not PowerShell, not Command Prompt, not Git Bash.
+The `Makefile` requires a Unix shell. On Windows you have two options:
 
-Podman Desktop already installs WSL2 during its own setup. To open a WSL2 terminal:
+**Option A — Git Bash (no extra install)**
 
-1. Press `Win + S`, search for **WSL**, open it
-2. Or open Windows Terminal, click the `∨` arrow next to the `+` tab button, and select your Linux distribution
+Git for Windows already includes Git Bash. Open it from the Start menu (`Win + S` → search **Git Bash**), navigate to the project folder, and run all `make` commands normally.
 
-Inside WSL2, verify Podman is reachable:
+**Option B — Native PowerShell**
 
-```bash
-podman --version
+PowerShell scripts are provided as a drop-in replacement for every `make` command. No Git Bash or WSL2 required.
+
+| `make` command | PowerShell equivalent |
+|---|---|
+| `make build` | `.\scripts\windows\build.ps1` |
+| `make up` | `.\scripts\windows\up.ps1` |
+| `make down` | `.\scripts\windows\down.ps1` |
+| `make hub-up` | `.\scripts\windows\hub-up.ps1` |
+| `make hub-down` | `.\scripts\windows\hub-down.ps1` |
+
+If PowerShell blocks script execution, run once:
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
-
-If the command is not found, open Podman Desktop, go to **Settings → Resources**, and confirm the Podman machine is running. Then retry from WSL2.
-
-All subsequent `make` commands in this guide must be run from the WSL2 terminal.
 
 ### Mode A — Full container stack
 
