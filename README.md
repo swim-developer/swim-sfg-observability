@@ -174,9 +174,11 @@ Open http://localhost:13000 (Hub Grafana) for the federation-level trace view.
 
 No language runtimes required (Mode A runs everything in containers).
 
-### Windows users — use PowerShell
+### Windows users — use PowerShell + Docker Desktop
 
-The `Makefile` is not compatible with Windows. Use the PowerShell scripts provided instead:
+The `Makefile` is not compatible with Windows. PowerShell scripts are provided as a drop-in replacement. They use **Docker Desktop** (not Podman) to avoid conflicts between the two runtimes on Windows.
+
+**Requirement**: [Docker Desktop](https://www.docker.com/products/docker-desktop/) must be installed and running.
 
 | `make` command | PowerShell equivalent |
 |---|---|
