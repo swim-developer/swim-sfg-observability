@@ -176,7 +176,7 @@ No language runtimes required (Mode A runs everything in containers).
 
 ### Windows users — use PowerShell
 
-The `Makefile` is not compatible with Windows (Git Bash path translation conflicts with the Podman Windows binary). Use the PowerShell scripts provided instead:
+The `Makefile` is not compatible with Windows. Use the PowerShell scripts provided instead:
 
 | `make` command | PowerShell equivalent |
 |---|---|
