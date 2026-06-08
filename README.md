@@ -118,17 +118,6 @@ This project supports two distinct demonstrations. They are not variations of th
 
 **What it proves:** a single organisation (e.g. an ANSP) can implement end-to-end distributed tracing across three services in three different languages, with a single `traceparent` crossing the HTTP→AMQP protocol boundary. All telemetry stays inside the organisation's own infrastructure.
 
-**When to run it:**
-
-| macOS/Linux | Windows (PowerShell) |
-|---|---|
-| `make build` | `.\scripts\windows\build.ps1` |
-| `make up` | `.\scripts\windows\up.ps1` |
-| `make demo-valid` | `.\scripts\windows\demo-valid.ps1` |
-| `make demo-invalid` | `.\scripts\windows\demo-invalid.ps1` |
-
-Open [http://localhost:3000](http://localhost:3000) (Grafana) to see traces, logs, and metrics.
-
 **The key point for the audience:** the `traceparent` survives the protocol change from HTTP to AMQP. The aviation payload is untouched. This is the wire-level behaviour that SPEC-170 should standardise.
 
 ---
@@ -150,13 +139,73 @@ Open [http://localhost:3000](http://localhost:3000) (Grafana) to see traces, log
 
 **This is the production model.** In the real world, each organisation runs its own stack (Scenario A). The Eurocontrol Network Manager plays the hub role, correlating traces across organisational boundaries to detect end-to-end anomalies without requiring access to anyone's internal infrastructure.
 
-**When to run it:** start Scenario A first. Build the hub image once (first time only):
+**The key point for the audience:** the same 32-character Trace ID that originated inside one organisation's internal stack is the key that the Eurocontrol Hub uses to reconstruct the full cross-organisation journey. No bilateral agreements, no proprietary connectors — just the W3C `traceparent` standard.
+
+---
+
+## Quick start
+
+This is the single operational guide. All commands to run both scenarios are here.
+
+### Prerequisites
+
+| Tool | macOS/Linux | Windows |
+|---|---|---|
+| Container runtime | [Podman Desktop](https://podman-desktop.io) | [Podman Desktop](https://podman-desktop.io) |
+| Build tool | `make` (pre-installed on most distros) | Not needed — use PowerShell scripts |
+| Source control | `git` | `git` |
+
+No language runtimes required — everything runs in containers.
+
+**Windows only — one-time setup:**
+
+Install the Compose provider (pick one):
+
+| Tool | Command |
+|---|---|
+| Chocolatey | `choco install podman-compose` |
+| pip | `pip install podman-compose` |
+| Podman Desktop | Settings → Resources → Compose → Setup |
+
+Verify with `podman compose version`. If PowerShell blocks scripts, run once:
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+---
+
+### Step 1 — Clone
+
+```bash
+git clone https://github.com/swim-developer/swim-sfg-observability.git
+cd swim-sfg-observability
+```
+
+### Step 2 — Build images (first time only)
 
 | macOS/Linux | Windows (PowerShell) |
 |---|---|
-| `make build-hub` | `.\scripts\windows\build.ps1` (already included) |
+| `make build` | `.\scripts\windows\build.ps1` |
 
-Then, when ready to transition to Scenario B during the demo:
+> Builds all images including the Eurocontrol Hub. Takes a few minutes on first run.
+
+### Step 3 — Start Scenario A
+
+| macOS/Linux | Windows (PowerShell) |
+|---|---|
+| `make up` | `.\scripts\windows\up.ps1` |
+
+Wait ~15 seconds, then open:
+
+| UI | URL |
+|---|---|
+| DNOTAM Originator | [http://localhost:8000](http://localhost:8000) |
+| Grafana | [http://localhost:3000](http://localhost:3000) |
+| Artemis Console | [http://localhost:8161](http://localhost:8161) — admin / admin |
+
+### Step 4 — Add Scenario B (federation hub)
+
+Run this while Scenario A is already running — no restart needed:
 
 | macOS/Linux | Windows (PowerShell) |
 |---|---|
@@ -164,88 +213,17 @@ Then, when ready to transition to Scenario B during the demo:
 
 Wait ~10 seconds, then open:
 
-- Hub Grafana: [http://localhost:13000](http://localhost:13000)
-- Federation Hub UI: [http://localhost:18080](http://localhost:18080)
-
-The OTel Collector fan-out pipeline is always active — as soon as the hub stack is running, it starts receiving traces automatically. No restart required.
-
-**The key point for the audience:** the same 32-character Trace ID that originated inside one organisation's internal stack is the key that the Eurocontrol Hub uses to reconstruct the full cross-organisation journey. No bilateral agreements, no proprietary connectors — just the W3C `traceparent` standard.
-
----
-
-## Quick start
-
-### Prerequisites
-
-- [Podman Desktop](https://podman-desktop.io) — includes the Podman engine and a graphical interface (recommended), or any OCI-compatible runtime
-- `make`
-- `git`
-
-No language runtimes required (Mode A runs everything in containers).
-
-### Windows users — use PowerShell
-
-The `Makefile` is not compatible with Windows. PowerShell scripts are provided as a drop-in replacement. They use **Podman** — [Podman Desktop](https://podman-desktop.io) must be installed and running.
-
-**One-time setup — install the Compose provider:**
-
-`podman compose` requires an external tool. Install one of the following (pick whichever matches what you already have):
-
-| Tool | Command |
+| UI | URL |
 |---|---|
-| Chocolatey | `choco install podman-compose` |
-| Python / pip | `pip install podman-compose` |
-| Podman Desktop UI | Settings → Resources → Compose → Setup (see [Podman Desktop docs](https://podman-desktop.io/docs/compose/setting-up-compose)) |
+| Hub Grafana | [http://localhost:13000](http://localhost:13000) |
+| Federation Hub API | [http://localhost:18080](http://localhost:18080) |
 
-Verify with `podman compose version` before proceeding.
+### Step 5 — Stop
 
-| `make` command | PowerShell equivalent |
+| macOS/Linux | Windows (PowerShell) |
 |---|---|
-| `make build` | `.\scripts\windows\build.ps1` |
-| `make up` | `.\scripts\windows\up.ps1` |
-| `make down` | `.\scripts\windows\down.ps1` |
-| `make hub-up` | `.\scripts\windows\hub-up.ps1` |
 | `make hub-down` | `.\scripts\windows\hub-down.ps1` |
-| `make demo-valid` | `.\scripts\windows\demo-valid.ps1` |
-| `make demo-invalid` | `.\scripts\windows\demo-invalid.ps1` |
-| `make logs-consumer` | `.\scripts\windows\logs-consumer.ps1` |
-| `make logs-publisher` | `podman logs -f sfg-dnotam-publisher` |
-
-If PowerShell blocks script execution, run this once and retry:
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
-
-### Mode A — Full container stack
-
-```bash
-git clone https://github.com/swim-developer/swim-sfg-observability.git
-cd swim-sfg-observability
-```
-
-Build and start (Scenario A):
-
-| macOS/Linux | Windows (PowerShell) |
-|---|---|
-| `make build` | `.\scripts\windows\build.ps1` |
-| `make up` | `.\scripts\windows\up.ps1` |
-
-To also start the Eurocontrol Federation Hub (Scenario B):
-
-| macOS/Linux | Windows (PowerShell) |
-|---|---|
-| `make build-hub` | *(included in `build.ps1`)* |
-| `make hub-up` | `.\scripts\windows\hub-up.ps1` |
-
-Wait ~15 seconds for all services to be healthy, then open:
-
-| UI | URL | Credentials |
-|---|---|---|
-| DNOTAM Originator | http://localhost:8000 | — |
-| Grafana (org) | http://localhost:3000 | admin / admin |
-| Artemis Console | http://localhost:8161 | admin / admin |
-| Federation Hub API | http://localhost:18080 | — |
-| Hub Grafana | http://localhost:13000 | admin / admin |
+| `make down` | `.\scripts\windows\down.ps1` |
 
 ---
 
