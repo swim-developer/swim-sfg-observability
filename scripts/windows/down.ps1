@@ -1,4 +1,4 @@
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
-docker compose -f "$root\infra\compose-full.yml" down
+podman compose -f "$root\infra\compose-full.yml" down
