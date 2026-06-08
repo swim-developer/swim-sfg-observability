@@ -11,9 +11,9 @@ public static class SwimLogger
     private static void Log(ILogger logger, LogLevel level, string eventType, string message, NotamMessage? notam, string traceparent)
     {
         logger.Log(level,
-            "[SERVICE_LAYER][{EventType}] {Message} | notam_id={NotamId} aerodrome={Aerodrome} runway={Runway} traceparent={Traceparent}",
-            eventType, message,
+            "[{SwimPerimeter}][{EventType}] {Message} | notam_id={NotamId} aerodrome={Aerodrome} runway={Runway} service_context={ServiceContext} traceparent={Traceparent}",
+            "SERVICE_LAYER", eventType, message,
             notam?.NotamId ?? "", notam?.Aerodrome ?? "", notam?.Runway ?? "",
-            traceparent);
+            "dNOTAM", traceparent);
     }
 }

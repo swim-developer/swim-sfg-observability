@@ -115,6 +115,9 @@ public partial class AmqpConsumerService : BackgroundService
         var startTimestamp = Stopwatch.GetTimestamp();
         var (traceparent, tracestate) = ExtractTraceContext(message);
 
+        if (string.IsNullOrEmpty(traceparent))
+            _logger.LogWarning("AMQP message received without traceparent in Application Properties — trace context will be broken");
+
         var carrier = new Dictionary<string, string> { ["traceparent"] = traceparent };
         if (!string.IsNullOrEmpty(tracestate))
             carrier["tracestate"] = tracestate;
