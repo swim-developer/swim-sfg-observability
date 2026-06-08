@@ -38,6 +38,7 @@ builder.Logging.AddOpenTelemetry(logging =>
 {
     logging.SetResourceBuilder(resource);
     logging.IncludeScopes = true;
+    logging.IncludeFormattedMessage = true;
     logging.AddOtlpExporter(options =>
     {
         options.Endpoint = new Uri(lokiEndpoint);
