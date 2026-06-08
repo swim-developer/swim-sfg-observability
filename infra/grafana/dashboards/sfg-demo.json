@@ -432,7 +432,7 @@
       "title": "Validation Failures",
       "gridPos": {
         "h": 7,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 13
       },
@@ -461,10 +461,10 @@
       "type": "logs",
       "title": "All Service Layer Events",
       "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 13
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 20
       },
       "datasource": {
         "uid": "loki",
@@ -494,7 +494,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 29
       },
       "datasource": {
         "uid": "prometheus",
