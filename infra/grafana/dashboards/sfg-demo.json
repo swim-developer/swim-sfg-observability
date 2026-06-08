@@ -392,8 +392,7 @@
           "custom": {
             "align": "auto",
             "displayMode": "auto"
-          },
-          "links": []
+          }
         },
         "overrides": [
           {
@@ -410,8 +409,15 @@
                 "id": "links",
                 "value": [
                   {
-                    "title": "Open in Tempo",
-                    "url": "/explore?left=%7B%22datasource%22%3A%22tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22${__value.raw}%22%7D%5D%7D"
+                    "title": "Open in Explore",
+                    "internal": {
+                      "query": {
+                        "query": "${__value.raw}",
+                        "queryType": "traceql"
+                      },
+                      "datasourceUid": "tempo",
+                      "datasourceName": "Tempo"
+                    }
                   }
                 ]
               }
