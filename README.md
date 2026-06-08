@@ -174,6 +174,25 @@ Open http://localhost:13000 (Hub Grafana) for the federation-level trace view.
 
 No language runtimes required (Mode A runs everything in containers).
 
+### Windows users — required setup before anything else
+
+The `Makefile` requires a Unix shell (`bash`). On Windows, all commands must be run inside **WSL2** — not PowerShell, not Command Prompt, not Git Bash.
+
+Podman Desktop already installs WSL2 during its own setup. To open a WSL2 terminal:
+
+1. Press `Win + S`, search for **WSL**, open it
+2. Or open Windows Terminal, click the `∨` arrow next to the `+` tab button, and select your Linux distribution
+
+Inside WSL2, verify Podman is reachable:
+
+```bash
+podman --version
+```
+
+If the command is not found, open Podman Desktop, go to **Settings → Resources**, and confirm the Podman machine is running. Then retry from WSL2.
+
+All subsequent `make` commands in this guide must be run from the WSL2 terminal.
+
 ### Mode A — Full container stack
 
 ```bash
