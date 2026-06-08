@@ -174,17 +174,9 @@ Open http://localhost:13000 (Hub Grafana) for the federation-level trace view.
 
 No language runtimes required (Mode A runs everything in containers).
 
-### Windows users — two options
+### Windows users — use PowerShell
 
-The `Makefile` requires a Unix shell. On Windows you have two options:
-
-**Option A — Git Bash (no extra install)**
-
-Git for Windows already includes Git Bash. Open it from the Start menu (`Win + S` → search **Git Bash**), navigate to the project folder, and run all `make` commands normally.
-
-**Option B — Native PowerShell**
-
-PowerShell scripts are provided as a drop-in replacement for every `make` command. No Git Bash or WSL2 required.
+The `Makefile` is not compatible with Windows (Git Bash path translation conflicts with the Podman Windows binary). Use the PowerShell scripts provided instead:
 
 | `make` command | PowerShell equivalent |
 |---|---|
@@ -194,7 +186,7 @@ PowerShell scripts are provided as a drop-in replacement for every `make` comman
 | `make hub-up` | `.\scripts\windows\hub-up.ps1` |
 | `make hub-down` | `.\scripts\windows\hub-down.ps1` |
 
-If PowerShell blocks script execution, run once:
+If PowerShell blocks script execution, run this once and retry:
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
