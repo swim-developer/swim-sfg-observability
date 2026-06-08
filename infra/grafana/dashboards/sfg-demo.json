@@ -379,7 +379,7 @@
       "targets": [
         {
           "queryType": "traceql",
-          "query": "{.service.name =~ \"dnotam.*\"}",
+          "query": "{name = \"dnotam.dispatch\"}",
           "refId": "A",
           "limit": 20
         }
@@ -434,7 +434,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 29
       },
       "datasource": {
         "uid": "loki",
@@ -494,7 +494,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 36
       },
       "datasource": {
         "uid": "prometheus",
