@@ -197,9 +197,9 @@ Verify with `podman compose version` before proceeding.
 | `make down` | `.\scripts\windows\down.ps1` |
 | `make hub-up` | `.\scripts\windows\hub-up.ps1` |
 | `make hub-down` | `.\scripts\windows\hub-down.ps1` |
-| `make demo-valid` | `curl.exe -s -X POST http://localhost:8000/publish/valid` |
-| `make demo-invalid` | `curl.exe -s -X POST http://localhost:8000/publish/invalid` |
-| `make logs-consumer` | `podman logs -f sfg-dnotam-consumer` |
+| `make demo-valid` | `.\scripts\windows\demo-valid.ps1` |
+| `make demo-invalid` | `.\scripts\windows\demo-invalid.ps1` |
+| `make logs-consumer` | `.\scripts\windows\logs-consumer.ps1` |
 | `make logs-publisher` | `podman logs -f sfg-dnotam-publisher` |
 
 If PowerShell blocks script execution, run this once and retry:
@@ -247,7 +247,7 @@ make demo-valid
 
 **Windows:**
 ```powershell
-curl.exe -s -X POST http://localhost:8000/publish/valid
+.\scripts\windows\demo-valid.ps1
 ```
 
 What happens internally:
@@ -272,7 +272,7 @@ make logs-consumer
 
 **Windows:**
 ```powershell
-podman logs -f sfg-dnotam-consumer
+.\scripts\windows\logs-consumer.ps1
 ```
 
 Expected: `[SERVICE_LAYER][OPERATIONAL_EVENT] DNOTAM integrated for flight operation at LPPT | traceparent=00-5d6b583f...-03`
@@ -290,7 +290,7 @@ make demo-invalid
 
 **Windows:**
 ```powershell
-curl.exe -s -X POST http://localhost:8000/publish/invalid
+.\scripts\windows\demo-invalid.ps1
 ```
 
 What happens internally:
@@ -308,7 +308,7 @@ make logs-consumer
 
 **Windows:**
 ```powershell
-podman logs -f sfg-dnotam-consumer
+.\scripts\windows\logs-consumer.ps1
 ```
 
 Expected output in consumer logs:
