@@ -119,14 +119,15 @@ This project supports two distinct demonstrations. They are not variations of th
 **What it proves:** a single organisation (e.g. an ANSP) can implement end-to-end distributed tracing across three services in three different languages, with a single `traceparent` crossing the HTTP→AMQP protocol boundary. All telemetry stays inside the organisation's own infrastructure.
 
 **When to run it:**
-```bash
-make build
-make up
-make demo-valid
-make demo-invalid
-```
 
-Open http://localhost:3000 (Grafana) to see traces, logs, and metrics.
+| macOS/Linux | Windows (PowerShell) |
+|---|---|
+| `make build` | `.\scripts\windows\build.ps1` |
+| `make up` | `.\scripts\windows\up.ps1` |
+| `make demo-valid` | `.\scripts\windows\demo-valid.ps1` |
+| `make demo-invalid` | `.\scripts\windows\demo-invalid.ps1` |
+
+Open [http://localhost:3000](http://localhost:3000) (Grafana) to see traces, logs, and metrics.
 
 **The key point for the audience:** the `traceparent` survives the protocol change from HTTP to AMQP. The aviation payload is untouched. This is the wire-level behaviour that SPEC-170 should standardise.
 
@@ -149,18 +150,24 @@ Open http://localhost:3000 (Grafana) to see traces, logs, and metrics.
 
 **This is the production model.** In the real world, each organisation runs its own stack (Scenario A). The Eurocontrol Network Manager plays the hub role, correlating traces across organisational boundaries to detect end-to-end anomalies without requiring access to anyone's internal infrastructure.
 
-**When to run it:** start Scenario A first, then:
-```bash
-make build-hub
-make hub-up
-make demo-valid    # or demo-invalid
-```
+**When to run it:** start Scenario A first. Build the hub image once (first time only):
 
-> **Note:** the `traces/hub` export pipeline in `infra/otel-collector.yaml` is commented out by default so that Scenario A runs cleanly without the hub stack. `make hub-up` activates it automatically.
+| macOS/Linux | Windows (PowerShell) |
+|---|---|
+| `make build-hub` | `.\scripts\windows\build.ps1` (already included) |
 
-Open http://localhost:18080 (Federation Hub) and paste the Trace ID. The Hub decomposes the `traceparent`, lists all participating organisations, and shows the distributed trace timeline with error detection.
+Then, when ready to transition to Scenario B during the demo:
 
-Open http://localhost:13000 (Hub Grafana) for the federation-level trace view.
+| macOS/Linux | Windows (PowerShell) |
+|---|---|
+| `make hub-up` | `.\scripts\windows\hub-up.ps1` |
+
+Wait ~10 seconds, then open:
+
+- Hub Grafana: [http://localhost:13000](http://localhost:13000)
+- Federation Hub UI: [http://localhost:18080](http://localhost:18080)
+
+The OTel Collector fan-out pipeline is always active — as soon as the hub stack is running, it starts receiving traces automatically. No restart required.
 
 **The key point for the audience:** the same 32-character Trace ID that originated inside one organisation's internal stack is the key that the Eurocontrol Hub uses to reconstruct the full cross-organisation journey. No bilateral agreements, no proprietary connectors — just the W3C `traceparent` standard.
 
@@ -212,21 +219,25 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ### Mode A — Full container stack
 
 ```bash
-# Clone
 git clone https://github.com/swim-developer/swim-sfg-observability.git
 cd swim-sfg-observability
-
-# Build the three core service images
-make build
-
-# Start the demo stack (9 containers) — creates the inter-stack network automatically
-make up
-
-# Start the Eurocontrol Federation Hub (3 more containers)
-make hub-up
 ```
 
-Wait ~30 seconds for all services to be healthy, then open:
+Build and start (Scenario A):
+
+| macOS/Linux | Windows (PowerShell) |
+|---|---|
+| `make build` | `.\scripts\windows\build.ps1` |
+| `make up` | `.\scripts\windows\up.ps1` |
+
+To also start the Eurocontrol Federation Hub (Scenario B):
+
+| macOS/Linux | Windows (PowerShell) |
+|---|---|
+| `make build-hub` | *(included in `build.ps1`)* |
+| `make hub-up` | `.\scripts\windows\hub-up.ps1` |
+
+Wait ~15 seconds for all services to be healthy, then open:
 
 | UI | URL | Credentials |
 |---|---|---|

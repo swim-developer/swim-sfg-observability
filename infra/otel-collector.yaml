@@ -53,8 +53,8 @@ exporters:
       insecure: true
     retry_on_failure:
       enabled: true
-      initial_interval: 30s
-      max_interval: 300s
+      initial_interval: 5s
+      max_interval: 30s
     sending_queue:
       enabled: true
       num_consumers: 1
@@ -68,8 +68,9 @@ service:
       processors: [batch]
       exporters: [otlp/local]
 
-    # Federated export — enabled when hub stack is running (make hub-up).
-    # traces/hub:
-    #   receivers: [otlp]
-    #   processors: [transform/hub-sanitize, batch]
-    #   exporters: [otlp/hub]
+    # Federated export — active when hub stack is running (make hub-up).
+    # When hub is down, this pipeline retries silently without affecting traces/local.
+    traces/hub:
+      receivers: [otlp]
+      processors: [transform/hub-sanitize, batch]
+      exporters: [otlp/hub]
