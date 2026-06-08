@@ -1,0 +1,75 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 512
+
+  # Strips internal infrastructure attributes before federation export.
+  # Models the EUROCONTROL NM pattern: each provider shares only what is
+  # needed for cross-organisational correlation, not internal platform details.
+  transform/hub-sanitize:
+    trace_statements:
+      - context: resource
+        statements:
+          - delete_key(resource.attributes, "telemetry.sdk.language")
+          - delete_key(resource.attributes, "telemetry.sdk.name")
+          - delete_key(resource.attributes, "telemetry.sdk.version")
+          - delete_key(resource.attributes, "process.command_args")
+          - delete_key(resource.attributes, "process.executable.name")
+          - delete_key(resource.attributes, "process.executable.path")
+          - delete_key(resource.attributes, "process.owner")
+          - delete_key(resource.attributes, "process.pid")
+          - delete_key(resource.attributes, "process.runtime.description")
+          - delete_key(resource.attributes, "process.runtime.name")
+          - delete_key(resource.attributes, "process.runtime.version")
+          - delete_key(resource.attributes, "host.arch")
+          - delete_key(resource.attributes, "host.name")
+          - delete_key(resource.attributes, "os.description")
+          - delete_key(resource.attributes, "os.type")
+          - delete_key(resource.attributes, "deployment.environment")
+          - delete_key(resource.attributes, "service.instance.id")
+      - context: span
+        statements:
+          - keep_keys(span.attributes, ["notam.id", "notam.aerodrome", "notam.type",
+              "notam.runway", "messaging.system", "messaging.destination.name",
+              "http.method", "http.route", "http.status_code"])
+
+exporters:
+  otlp/local:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+  otlp/hub:
+    endpoint: sfg-hub-tempo:4317
+    tls:
+      insecure: true
+    retry_on_failure:
+      enabled: true
+      initial_interval: 30s
+      max_interval: 300s
+    sending_queue:
+      enabled: true
+      num_consumers: 1
+      queue_size: 100
+
+service:
+  pipelines:
+    # Full fidelity — internal Tempo receives all attributes unmodified.
+    traces/local:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/local]
+
+    # Federated export — only curated aviation business attributes reach the hub.
+    traces/hub:
+      receivers: [otlp]
+      processors: [transform/hub-sanitize, batch]
+      exporters: [otlp/hub]

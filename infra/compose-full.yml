@@ -1,0 +1,148 @@
+services:
+
+  # ── Infrastructure ────────────────────────────────────────────────────────
+
+  artemis:
+    image: apache/activemq-artemis:2.40.0-alpine
+    container_name: sfg-artemis
+    ports:
+      - "5672:5672"
+      - "8161:8161"
+    environment:
+      ARTEMIS_USER: admin
+      ARTEMIS_PASSWORD: admin
+      ANONYMOUS_LOGIN: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 5672 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    container_name: sfg-otel-collector
+    command: ["--config=/etc/otel-collector.yaml"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./otel-collector.yaml:/etc/otel-collector.yaml:ro
+    networks:
+      - default
+      - swim-federation
+    depends_on:
+      - tempo
+
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: sfg-tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    ports:
+      - "3200:3200"
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml:ro
+
+  loki:
+    image: grafana/loki:latest
+    container_name: sfg-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: sfg-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-remote-write-receiver"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: sfg-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+    volumes:
+      - ./grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+  # ── Applications ──────────────────────────────────────────────────────────
+
+  dnotam-publisher:
+    image: sfg-dnotam-publisher:latest
+    container_name: sfg-dnotam-publisher
+    ports:
+      - "8080:8080"
+    environment:
+      AMQP_HOST: artemis
+      AMQP_PORT: "5672"
+      AMQP_USER: admin
+      AMQP_PASSWORD: admin
+      OTLP_ENDPOINT: http://otel-collector:4317
+      LOKI_OTLP_ENDPOINT: http://loki:3100/otlp
+    depends_on:
+      artemis:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+      loki:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat /dev/null > /dev/tcp/localhost/8080' 2>/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  dnotam-consumer:
+    image: sfg-dnotam-consumer:latest
+    container_name: sfg-dnotam-consumer
+    ports:
+      - "9465:9464"
+    environment:
+      AMQP_HOST: artemis
+      AMQP_PORT: "5672"
+      AMQP_USER: admin
+      AMQP_PASSWORD: admin
+      OTLP_ENDPOINT: http://otel-collector:4317
+      LOKI_OTLP_ENDPOINT: http://loki:3100/otlp/v1/logs
+    depends_on:
+      artemis:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+      loki:
+        condition: service_started
+
+  dnotam-originator:
+    image: sfg-dnotam-originator:latest
+    container_name: sfg-dnotam-originator
+    ports:
+      - "8000:8000"
+      - "9464:9464"
+    environment:
+      PUBLISHER_URL: http://dnotam-publisher:8080
+      OTLP_ENDPOINT: http://otel-collector:4317
+      LOKI_OTLP_ENDPOINT: http://loki:3100/otlp/v1/logs
+    depends_on:
+      dnotam-publisher:
+        condition: service_healthy
+
+networks:
+  default: {}
+  swim-federation:
+    name: swim-federation
+    external: true

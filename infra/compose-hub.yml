@@ -1,0 +1,51 @@
+services:
+
+  hub-tempo:
+    image: grafana/tempo:2.6.1
+    container_name: sfg-hub-tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    ports:
+      - "13200:3200"
+    volumes:
+      - ./tempo-hub.yaml:/etc/tempo.yaml:ro
+    networks:
+      - hub-default
+      - swim-federation
+
+  hub-grafana:
+    image: grafana/grafana:latest
+    container_name: sfg-hub-grafana
+    ports:
+      - "13000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+    volumes:
+      - ./grafana/hub-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    networks:
+      - hub-default
+    depends_on:
+      - hub-tempo
+
+  eurocontrol-hub:
+    image: sfg-eurocontrol-hub:latest
+    container_name: sfg-eurocontrol-hub
+    ports:
+      - "18080:8080"
+    environment:
+      TEMPO_URL: http://sfg-hub-tempo:3200
+      OTLP_ENDPOINT: http://sfg-hub-tempo:4317
+    networks:
+      - hub-default
+      - swim-federation
+    depends_on:
+      - hub-tempo
+
+networks:
+  hub-default: {}
+  swim-federation:
+    name: swim-federation
+    external: true

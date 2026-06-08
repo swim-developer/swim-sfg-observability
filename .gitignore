@@ -1,0 +1,35 @@
+# macOS
+.DS_Store
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Java / Quarkus
+target/
+*.class
+
+# .NET
+bin/
+obj/
+
+# Logs
+*.log
+nohup.out
+
+# Secrets
+*.pem
+*.key
+*.p12
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Agent tools (Cursor internal)
+agent-tools/
+
+# Screenshots — review before uncommenting
+docs/images/*.png

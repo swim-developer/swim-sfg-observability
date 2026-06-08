@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: swim-sfg-observability
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://gitea.apps-crc.testing/swimadmin/swim-sfg-observability.git
+    targetRevision: main
+    path: deployments/openshift
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: swim-sfg-observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
