@@ -1,6 +1,4 @@
-src/
-.mvn/
-mvnw
-mvnw.cmd
+target/
 README.md
 .git
+mvnw.cmd
