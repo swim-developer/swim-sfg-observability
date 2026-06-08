@@ -75,14 +75,9 @@ help:
 
 .PHONY: build
 build: build-originator build-publisher build-consumer
-	@echo ""
-	@echo "  Core images built. Run 'make up' to start the full stack."
-	@echo "  For federation hub: make build-hub"
 
 .PHONY: build-all
 build-all: build build-hub
-	@echo ""
-	@echo "  All images built (incl. hub)."
 
 .PHONY: build-originator
 build-originator:
@@ -110,16 +105,7 @@ build-hub:
 
 .PHONY: up
 up: federation-network
-	@echo "  Starting full stack (infra + apps)..."
 	podman compose -f $(INFRA_DIR)/compose-full.yml up -d
-	@echo ""
-	@echo "  Waiting for services (~30s)..."
-	@sleep 30
-	@$(MAKE) status
-	@echo ""
-	@echo "  Originator UI : $(ORIGINATOR_URL)"
-	@echo "  Grafana       : $(GRAFANA_UI)  (admin/admin)"
-	@echo "  Artemis       : $(ARTEMIS_UI)  (admin/admin)"
 
 .PHONY: down
 down:
@@ -133,10 +119,7 @@ status:
 
 .PHONY: infra-up
 infra-up: federation-network
-	@echo "  Starting infra stack..."
 	podman compose -f $(INFRA_DIR)/compose.yml up -d
-	@echo "  Grafana  : $(GRAFANA_UI)  (admin/admin)"
-	@echo "  Artemis  : $(ARTEMIS_UI)  (admin/admin)"
 
 .PHONY: infra-down
 infra-down:
@@ -177,17 +160,11 @@ demo-valid:
 	@echo "  Scenario 1 — valid DNOTAM (runway 27R)"
 	@curl -s -X POST $(ORIGINATOR_URL)/publish/valid | \
 	  python3 -c "import sys,json; d=json.load(sys.stdin); print('  Trace ID:', d['traceparent'].split('-')[1]); print('  Status  :', d.get('status')); print('  Runway  :', d['metadata']['runway'])"
-	@echo ""
-	@echo "  Check logs : make logs-consumer"
-	@echo "  Traces     : make open-grafana"
-
 .PHONY: demo-invalid
 demo-invalid:
 	@echo "  Scenario 2 — invalid DNOTAM (runway ZZ9)"
 	@curl -s -X POST $(ORIGINATOR_URL)/publish/invalid | \
 	  python3 -c "import sys,json; d=json.load(sys.stdin); print('  Trace ID:', d['traceparent'].split('-')[1]); print('  Status  :', d.get('status')); print('  Runway  :', d['metadata']['runway'])"
-	@echo ""
-	@echo "  Expect VALIDATION_FAILURE in logs : make logs-consumer"
 
 # ─── Logs ─────────────────────────────────────────────────────────────────────
 
@@ -219,13 +196,7 @@ federation-network:
 
 .PHONY: hub-up
 hub-up: federation-network
-	@echo "  Starting Eurocontrol Federation Hub..."
 	podman compose -f $(INFRA_DIR)/compose-hub.yml up -d
-	@sleep 8
-	@podman ps --format "table {{.Names}}\t{{.Status}}" | grep sfg-hub || true
-	@echo ""
-	@echo "  Federation UI : $(HUB_UI)"
-	@echo "  Hub Grafana   : $(HUB_GRAFANA_UI)  (admin/admin)"
 
 .PHONY: hub-down
 hub-down:
