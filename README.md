@@ -87,18 +87,18 @@ This is the wire-level proof: the same 32-character Trace ID appears in HTTP hea
 
 | Service | Technology | Role | Port |
 |---|---|---|---|
-| dnotam-originator | Python 3.12, FastAPI | Web UI · dispatches DNOTAM via HTTP REST | 8000 |
+| dnotam-originator | Python 3.14, FastAPI | Web UI · dispatches DNOTAM via HTTP REST | 8000 |
 | dnotam-publisher | Quarkus 3.36.1, Java 25 | Receives HTTP · publishes to AMQP | 8080 |
 | dnotam-consumer | .NET 10 Worker | Consumes AMQP · validates · logs | — |
 | eurocontrol-hub | Quarkus 3.36.1, Java 25 | Federation query API | 18080 |
 | ActiveMQ Artemis | Apache 2.40 | AMQP 1.0 broker | 5672, 8161 |
 | OTel Collector | OTEL Contrib 0.123.0 | Span fan-out (org → hub) | 4317, 4318 |
-| Grafana Tempo | 2.6.1 | Distributed traces (org) | 3200 |
+| Grafana Tempo | 3.x (latest) | Distributed traces (org) | 3200 |
 | Grafana Loki | latest | Log aggregation | 3100 |
 | Prometheus | latest | Metrics | 9090 |
-| Grafana | latest | Dashboards (org) | 3000 |
-| Hub Tempo | 2.6.1 | Distributed traces (federation) | 13200 |
-| Hub Grafana | latest | Dashboards (federation) | 13000 |
+| Grafana | 12.4.4 | Dashboards (org) | 3000 |
+| Hub Tempo | 3.x (latest) | Distributed traces (federation) | 13200 |
+| Hub Grafana | 12.4.4 | Dashboards (federation) | 13000 |
 
 ---
 
@@ -155,6 +155,8 @@ make build-hub
 make hub-up
 make demo-valid    # or demo-invalid
 ```
+
+> **Note:** the `traces/hub` export pipeline in `infra/otel-collector.yaml` is commented out by default so that Scenario A runs cleanly without the hub stack. `make hub-up` activates it automatically.
 
 Open http://localhost:18080 (Federation Hub) and paste the Trace ID. The Hub decomposes the `traceparent`, lists all participating organisations, and shows the distributed trace timeline with error detection.
 
@@ -357,15 +359,15 @@ processors:
 
 service:
   pipelines:
-    traces/local:                             # full fidelity
+    traces/local:                             # full fidelity — always active
       receivers: [otlp]
       processors: [batch]
       exporters: [otlp/local]
 
-    traces/hub:                               # curated federation export
-      receivers: [otlp]
-      processors: [transform/hub-sanitize, batch]
-      exporters: [otlp/hub]
+    # traces/hub:                             # curated federation export
+    #   receivers: [otlp]                     # uncommented automatically by make hub-up
+    #   processors: [transform/hub-sanitize, batch]
+    #   exporters: [otlp/hub]
 ```
 
 **What each pipeline sees:**
@@ -545,8 +547,8 @@ This is the wire-level requirement that the SFG proposes to add to SPEC-170.
 
 After running both scenarios, open Grafana at http://localhost:3000 and go to the provisioned **SWIM dNOTAM Operations** dashboard. You will see:
 
-1. **Service Map** — three nodes connected: originator → publisher → consumer (Tempo metrics generator)
-2. **Recent Traces** — both traces listed, the invalid one marked red
+1. **Service Map** — table showing service edges (`originator → publisher`, `publisher → consumer`) with request counts from Tempo's `metrics_generator` via Prometheus
+2. **Recent Traces** — table listing traces with Trace ID, service, operation, and duration; click any Trace ID to open the full waterfall in Explore
 3. **Validation Failures** log panel — the `VALIDATION_FAILURE` log entry, with a clickable link to the trace
 4. **Dispatch & Publish Rate** — counters incremented
 
