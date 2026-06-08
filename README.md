@@ -197,6 +197,10 @@ Verify with `podman compose version` before proceeding.
 | `make down` | `.\scripts\windows\down.ps1` |
 | `make hub-up` | `.\scripts\windows\hub-up.ps1` |
 | `make hub-down` | `.\scripts\windows\hub-down.ps1` |
+| `make demo-valid` | `curl.exe -s -X POST http://localhost:8000/publish/valid` |
+| `make demo-invalid` | `curl.exe -s -X POST http://localhost:8000/publish/invalid` |
+| `make logs-consumer` | `podman logs -f sfg-dnotam-consumer` |
+| `make logs-publisher` | `podman logs -f sfg-dnotam-publisher` |
 
 If PowerShell blocks script execution, run this once and retry:
 ```powershell
@@ -236,8 +240,14 @@ Wait ~30 seconds for all services to be healthy, then open:
 
 ### Scenario 1 — Valid DNOTAM (runway 27R)
 
+**Linux / macOS:**
 ```bash
 make demo-valid
+```
+
+**Windows:**
+```powershell
+curl.exe -s -X POST http://localhost:8000/publish/valid
 ```
 
 What happens internally:
@@ -254,10 +264,18 @@ Runway  : 27R
 ```
 
 Verify logs:
+
+**Linux / macOS:**
 ```bash
 make logs-consumer
-# Expected: [SERVICE_LAYER][OPERATIONAL_EVENT] DNOTAM integrated for flight operation at LPPT | traceparent=00-5d6b583f...-03
 ```
+
+**Windows:**
+```powershell
+podman logs -f sfg-dnotam-consumer
+```
+
+Expected: `[SERVICE_LAYER][OPERATIONAL_EVENT] DNOTAM integrated for flight operation at LPPT | traceparent=00-5d6b583f...-03`
 
 Verify trace in Grafana → Explore → Tempo → search by Trace ID.
 
@@ -265,8 +283,14 @@ Verify trace in Grafana → Explore → Tempo → search by Trace ID.
 
 ### Scenario 2 — Invalid DNOTAM (runway ZZ9)
 
+**Linux / macOS:**
 ```bash
 make demo-invalid
+```
+
+**Windows:**
+```powershell
+curl.exe -s -X POST http://localhost:8000/publish/invalid
 ```
 
 What happens internally:
@@ -274,6 +298,18 @@ What happens internally:
 2. The publisher does NOT validate — it publishes the AMQP message as-is (correct behaviour: the publisher is a transport relay, not a validator)
 3. The consumer receives the message, extracts `traceparent`, checks the runway pattern `\d{2}[LRC]?` — `ZZ9` fails
 4. The consumer logs a `VALIDATION_FAILURE` and marks the span as `ERROR`
+
+Verify logs:
+
+**Linux / macOS:**
+```bash
+make logs-consumer
+```
+
+**Windows:**
+```powershell
+podman logs -f sfg-dnotam-consumer
+```
 
 Expected output in consumer logs:
 ```
