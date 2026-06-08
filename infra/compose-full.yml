@@ -75,12 +75,12 @@ services:
     ports:
       - "8080:8080"
     environment:
-      AMQP_HOST: artemis
+      AMQP_HOST: sfg-artemis
       AMQP_PORT: "5672"
       AMQP_USER: admin
       AMQP_PASSWORD: admin
-      OTLP_ENDPOINT: http://otel-collector:4317
-      LOKI_OTLP_ENDPOINT: http://loki:3100/otlp
+      OTLP_ENDPOINT: http://sfg-otel-collector:4317
+      LOKI_OTLP_ENDPOINT: http://sfg-loki:3100/otlp
 
   dnotam-consumer:
     image: sfg-dnotam-consumer:latest
@@ -88,12 +88,12 @@ services:
     ports:
       - "9465:9464"
     environment:
-      AMQP_HOST: artemis
+      AMQP_HOST: sfg-artemis
       AMQP_PORT: "5672"
       AMQP_USER: admin
       AMQP_PASSWORD: admin
-      OTLP_ENDPOINT: http://otel-collector:4317
-      LOKI_OTLP_ENDPOINT: http://loki:3100/otlp/v1/logs
+      OTLP_ENDPOINT: http://sfg-otel-collector:4317
+      LOKI_OTLP_ENDPOINT: http://sfg-loki:3100/otlp/v1/logs
 
   dnotam-originator:
     image: sfg-dnotam-originator:latest
@@ -102,9 +102,9 @@ services:
       - "8000:8000"
       - "9464:9464"
     environment:
-      PUBLISHER_URL: http://dnotam-publisher:8080
-      OTLP_ENDPOINT: http://otel-collector:4317
-      LOKI_OTLP_ENDPOINT: http://loki:3100/otlp/v1/logs
+      PUBLISHER_URL: http://sfg-dnotam-publisher:8080
+      OTLP_ENDPOINT: http://sfg-otel-collector:4317
+      LOKI_OTLP_ENDPOINT: http://sfg-loki:3100/otlp/v1/logs
 
 networks:
   default: {}
