@@ -145,7 +145,7 @@ This project supports two distinct demonstrations. They are not variations of th
 
 ## Quick start
 
-This is the single operational guide. All commands to run both scenarios are here.
+This is the single operational guide. Follow the steps in order.
 
 ### Prerequisites
 
@@ -189,13 +189,13 @@ cd swim-sfg-observability
 
 > Builds all images including the Federation Hub. Takes a few minutes on first run.
 
-### Step 3 — Start Scenario A
+### Step 3 — Start the stack
 
 | macOS/Linux | Windows (PowerShell) |
 |---|---|
 | `make up` | `.\scripts\windows\up.ps1` |
 
-Wait ~15 seconds, then open:
+Wait ~15 seconds, then open these URLs in your browser — keep them open for the rest of the demo:
 
 | UI | URL |
 |---|---|
@@ -203,9 +203,22 @@ Wait ~15 seconds, then open:
 | Grafana | [http://localhost:3000](http://localhost:3000) |
 | Artemis Console | [http://localhost:8161](http://localhost:8161) — admin / admin |
 
-### Step 4 — Add Scenario B (federation hub)
+### Step 4 — Run Scenario A (valid and invalid DNOTAM)
 
-Run this while Scenario A is already running — no restart needed:
+With the stack running, trigger the scenarios from the terminal:
+
+| Action | macOS/Linux | Windows (PowerShell) |
+|---|---|---|
+| Dispatch valid DNOTAM | `make demo-valid` | `.\scripts\windows\demo-valid.ps1` |
+| Dispatch invalid DNOTAM | `make demo-invalid` | `.\scripts\windows\demo-invalid.ps1` |
+
+Or use the browser: open [http://localhost:8000](http://localhost:8000) and click **Dispatch** on either card.
+
+Watch the results in Grafana at [http://localhost:3000](http://localhost:3000) — the dashboard auto-refreshes every 2 seconds.
+
+### Step 5 — Add the Federation Hub (Scenario B)
+
+The stack from Step 3 is still running. Add the hub on top — no restart needed:
 
 | macOS/Linux | Windows (PowerShell) |
 |---|---|
@@ -218,7 +231,9 @@ Wait ~10 seconds, then open:
 | Hub Grafana | [http://localhost:13000](http://localhost:13000) |
 | Federation Hub API | [http://localhost:18080](http://localhost:18080) |
 
-### Step 5 — Stop
+Dispatch any DNOTAM again — the trace now appears in both Grafana (org) and Hub Grafana simultaneously.
+
+### Step 6 — Stop everything when done
 
 | macOS/Linux | Windows (PowerShell) |
 |---|---|
