@@ -27,7 +27,7 @@ services:
       - swim-federation
 
   tempo:
-    image: docker.io/grafana/tempo:2.6.1
+    image: docker.io/grafana/tempo:latest
     container_name: sfg-tempo
     command: ["-config.file=/etc/tempo.yaml"]
     ports:
