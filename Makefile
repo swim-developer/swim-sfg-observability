@@ -87,7 +87,6 @@ build-originator:
 .PHONY: build-publisher
 build-publisher:
 	@echo "  Building $(IMAGE_PUBLISHER)..."
-	cd $(PUBLISHER_DIR) && ./mvnw clean package -DskipTests -q
 	podman build --no-cache -t $(IMAGE_PUBLISHER) -f $(PUBLISHER_DIR)/Containerfile $(PUBLISHER_DIR)
 
 .PHONY: build-consumer
@@ -190,9 +189,7 @@ open-artemis:
 
 .PHONY: federation-network
 federation-network:
-	@podman network inspect swim-federation >/dev/null 2>&1 || \
-	  (echo "  Creating shared network swim-federation..." && podman network create swim-federation)
-	@echo "  Network swim-federation ready."
+	@podman network inspect swim-federation >/dev/null 2>&1 || podman network create swim-federation
 
 .PHONY: hub-up
 hub-up: federation-network
