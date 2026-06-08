@@ -27,7 +27,6 @@ public partial class AmqpConsumerService : BackgroundService
     private readonly string _user;
     private readonly string _password;
 
-    private const int MaxReconnectAttempts = 10;
     private static readonly TimeSpan InitialReconnectDelay = TimeSpan.FromSeconds(2);
 
     public AmqpConsumerService(ILogger<AmqpConsumerService> logger, IConfiguration configuration)
@@ -41,11 +40,20 @@ public partial class AmqpConsumerService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var delay = InitialReconnectDelay;
+        var attempt = 0;
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
+                if (attempt > 0)
+                    _logger.LogInformation("Reconnect attempt {Attempt} — connecting to {Host}:{Port}", attempt, _host, _port);
+
                 await ConsumeLoop(stoppingToken);
+
+                delay = InitialReconnectDelay;
+                attempt = 0;
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -53,8 +61,17 @@ public partial class AmqpConsumerService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "AMQP connection lost, attempting reconnect");
-                await ReconnectDelay(stoppingToken);
+                attempt++;
+                _logger.LogError(ex, "AMQP connection failed (attempt {Attempt}), retrying in {Delay}s", attempt, (int)delay.TotalSeconds);
+                try
+                {
+                    await Task.Delay(delay, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, 60));
             }
         }
     }
@@ -93,21 +110,6 @@ public partial class AmqpConsumerService : BackgroundService
             await session.CloseAsync();
             await connection.CloseAsync();
         }
-    }
-
-    private async Task ReconnectDelay(CancellationToken stoppingToken)
-    {
-        var delay = InitialReconnectDelay;
-        for (var attempt = 1; attempt <= MaxReconnectAttempts; attempt++)
-        {
-            _logger.LogWarning("Reconnect attempt {Attempt}/{Max} in {Delay}s",
-                attempt, MaxReconnectAttempts, delay.TotalSeconds);
-            await Task.Delay(delay, stoppingToken);
-            delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, 60));
-        }
-
-        _logger.LogCritical("Exhausted {Max} reconnect attempts, waiting before retry", MaxReconnectAttempts);
-        await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
     }
 
     private void ProcessMessage(Message message)
