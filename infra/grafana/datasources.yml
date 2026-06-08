@@ -30,6 +30,9 @@ datasources:
         datasourceUid: prometheus
       nodeGraph:
         enabled: true
+      streamingEnabled:
+        search: false
+        metrics: false
 
   - name: Loki
     uid: loki
