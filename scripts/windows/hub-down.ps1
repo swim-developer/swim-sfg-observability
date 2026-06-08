@@ -1,4 +1,12 @@
-$ErrorActionPreference = "Stop"
-$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$ErrorActionPreference = "SilentlyContinue"
 
-podman compose -f "$root\infra\compose-hub.yml" down
+$containers = @(
+    "sfg-eurocontrol-hub",
+    "sfg-hub-grafana",
+    "sfg-hub-tempo"
+)
+
+foreach ($c in $containers) {
+    podman stop $c 2>$null
+    podman rm $c 2>$null
+}
