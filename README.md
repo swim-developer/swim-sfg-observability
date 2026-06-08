@@ -10,7 +10,7 @@ The Yellow Profile mandates AMQP 1.0 and HTTP/REST as protocol bindings, but say
 
 Without a standardised mechanism to carry a correlation identifier across those boundaries, it is impossible to answer:
 
-> *"This DNOTAM was published at 10:42 UTC — why is the consumer at Eurocontrol flagging it as invalid at 10:42:03?"*
+> *"This DNOTAM was published at 10:42 UTC — why is the federation hub flagging it as invalid at 10:42:03?"*
 
 This demo proves that the W3C `traceparent` header solves this — and that it can be carried through AMQP 1.0 Application Properties without modifying the aviation payload.
 
@@ -52,10 +52,10 @@ flowchart TD
         T & L & P --> G
     end
 
-    subgraph "Eurocontrol Federation Hub"
+    subgraph "Federation Hub"
         HT["Hub Tempo\nTraces\n:13200"]
         HG["Hub Grafana\n:13000"]
-        HUB["eurocontrol-hub\nQuarkus · SWIM API\n:18080"]
+        HUB["federation-hub\nQuarkus · SWIM API\n:18080"]
 
         COL -->|"traces fan-out\n(swim-federation network)"| HT
         HT --- HUB
@@ -90,7 +90,7 @@ This is the wire-level proof: the same 32-character Trace ID appears in HTTP hea
 | dnotam-originator | Python 3.14, FastAPI | Web UI · dispatches DNOTAM via HTTP REST | 8000 |
 | dnotam-publisher | Quarkus 3.36.1, Java 25 | Receives HTTP · publishes to AMQP | 8080 |
 | dnotam-consumer | .NET 10 Worker | Consumes AMQP · validates · logs | — |
-| eurocontrol-hub | Quarkus 3.36.1, Java 25 | Federation query API | 18080 |
+| federation-hub | Quarkus 3.36.1, Java 25 | Federation query API | 18080 |
 | ActiveMQ Artemis | Apache 2.40 | AMQP 1.0 broker | 5672, 8161 |
 | OTel Collector | OTEL Contrib 0.123.0 | Span fan-out (org → hub) | 4317, 4318 |
 | Grafana Tempo | 3.x (latest) | Distributed traces (org) | 3200 |
@@ -122,7 +122,7 @@ This project supports two distinct demonstrations. They are not variations of th
 
 ---
 
-### Scenario B — Federated view (Eurocontrol as hub)
+### Scenario B — Federated view (federation hub)
 
 ```
 [Originator] --HTTP--> [Publisher] --AMQP--> [Consumer]
@@ -131,15 +131,15 @@ This project supports two distinct demonstrations. They are not variations of th
                     |                 |
           [Org Tempo/Grafana]   [Hub Tempo]
                                       |
-                             [Eurocontrol Hub API]
+                             [Federation Hub API]
                              [Hub Grafana]
 ```
 
 **What it proves:** in a multi-organisation environment (different ANSPs, AISPs, airlines), a neutral federation hub can aggregate telemetry from all parties using only the `traceparent` as the correlation key — without accessing internal logs, metrics, or platform details. Each organisation controls what it shares (only curated span attributes reach the hub, internal SDK/host/process data is stripped at the OTel Collector).
 
-**This is the production model.** In the real world, each organisation runs its own stack (Scenario A). The Eurocontrol Network Manager plays the hub role, correlating traces across organisational boundaries to detect end-to-end anomalies without requiring access to anyone's internal infrastructure.
+**This is the production model.** In the real world, each organisation runs its own stack (Scenario A). A neutral federation hub plays the hub role, correlating traces across organisational boundaries to detect end-to-end anomalies without requiring access to anyone's internal infrastructure.
 
-**The key point for the audience:** the same 32-character Trace ID that originated inside one organisation's internal stack is the key that the Eurocontrol Hub uses to reconstruct the full cross-organisation journey. No bilateral agreements, no proprietary connectors — just the W3C `traceparent` standard.
+**The key point for the audience:** the same 32-character Trace ID that originated inside one organisation's internal stack is the key that the Federation Hub uses to reconstruct the full cross-organisation journey. No bilateral agreements, no proprietary connectors — just the W3C `traceparent` standard.
 
 ---
 
@@ -187,7 +187,7 @@ cd swim-sfg-observability
 |---|---|
 | `make build` | `.\scripts\windows\build.ps1` |
 
-> Builds all images including the Eurocontrol Hub. Takes a few minutes on first run.
+> Builds all images including the Federation Hub. Takes a few minutes on first run.
 
 ### Step 3 — Start Scenario A
 
@@ -309,17 +309,17 @@ Expected output in consumer logs:
 
 In Grafana Tempo, the `dnotam.process` span appears red (ERROR status) with the message "Invalid runway code". You can navigate from the red span back to the originator span to see exactly when and where the invalid data entered the chain.
 
-Why is this powerful: the consumer is at a different organisation (Eurocontrol) with no direct access to the originator. The `traceparent` is the only link. Following it in Grafana reconstructs the entire chain without any organisation needing to share private logs.
+Why is this powerful: the consumer is at a different organisation with no direct access to the originator. The `traceparent` is the only link. Following it in Grafana reconstructs the entire chain without any organisation needing to share private logs.
 
 ---
 
-## Eurocontrol Federation Hub
+## Federation Hub
 
 ### What it models
 
 In real SWIM deployments, an airport, an ANSP, and an airline each run their own observability stack. There is no shared Grafana. The W3C Trace Context proposal for SPEC-170 requires that the `traceparent` be standardised at the wire level — not the platform level.
 
-The Eurocontrol Hub models a **neutral federation point**: a central service that receives spans from all organisations via a shared network (`swim-federation`), stores them in an independent Tempo, and exposes a SWIM-style REST API to query cross-organisation traces by Trace ID.
+The Federation Hub models a **neutral federation point**: a central service that receives spans from all organisations via a shared network (`swim-federation`), stores them in an independent Tempo, and exposes a SWIM-style REST API to query cross-organisation traces by Trace ID.
 
 ### How it works technically
 
@@ -370,7 +370,7 @@ service:
 | `service.instance.id` | ✅ | ❌ stripped |
 | `telemetry.sdk.*`, `host.*`, `process.*`, `os.*` | ✅ | ❌ stripped |
 
-This models the EUROCONTROL Network Manager pattern: each organisation shares correlation context (Trace ID, service names, aviation business fields) without exposing internal platform details. Services are unaware of the hub — they send to one endpoint (the Collector), and routing is transparent.
+This models the Network Manager pattern: each organisation shares correlation context (Trace ID, service names, aviation business fields) without exposing internal platform details. Services are unaware of the hub — they send to one endpoint (the Collector), and routing is transparent.
 
 ### Query the federation hub
 
@@ -449,7 +449,7 @@ make build-all          Build all 4 images (incl. hub)
 make build-originator   Build originator image only
 make build-publisher    Build publisher image (Maven compile + container)
 make build-consumer     Build consumer image
-make build-hub          Build eurocontrol-hub image
+make build-hub          Build federation-hub image
 
 # Main stack
 make up                 Start full stack (9 containers)
@@ -511,7 +511,7 @@ The `trace-id` never changes. It crosses the HTTP→AMQP protocol boundary throu
 
 The `parent-id` updates at each service boundary, creating the parent-child span relationship that Tempo renders as a timeline. Every span knows its parent. No span is orphaned.
 
-### What the EUROCONTROL Hub shows
+### What the Federation Hub shows
 
 When you query the Hub with a Trace ID, the UI decomposes the `traceparent` live:
 
@@ -543,7 +543,7 @@ After running both scenarios, open Grafana at http://localhost:3000 and go to th
 
 Then open the Federation Hub at http://localhost:18080, paste either Trace ID, and observe the cross-organisation view: three participants, all spans, error detection.
 
-The core message: one 32-character identifier (`traceId`) created at the moment the airport dispatched the DNOTAM is present in every artefact — HTTP headers, AMQP Application Properties, structured logs, and distributed trace spans — across three independent technology stacks. This is what EUROCONTROL SPEC-170 should standardise.
+The core message: one 32-character identifier (`traceId`) created at the moment the airport dispatched the DNOTAM is present in every artefact — HTTP headers, AMQP Application Properties, structured logs, and distributed trace spans — across three independent technology stacks. This is what SPEC-170 should standardise.
 
 ---
 

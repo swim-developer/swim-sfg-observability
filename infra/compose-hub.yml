@@ -30,9 +30,9 @@ services:
     depends_on:
       - hub-tempo
 
-  eurocontrol-hub:
-    image: sfg-eurocontrol-hub:latest
-    container_name: sfg-eurocontrol-hub
+  federation-hub:
+    image: sfg-federation-hub:latest
+    container_name: sfg-federation-hub
     ports:
       - "18080:8080"
     environment:

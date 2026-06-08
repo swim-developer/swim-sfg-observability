@@ -7,12 +7,12 @@ APPS_DIR      := $(PROJECT_ROOT)/apps
 ORIGINATOR_DIR := $(APPS_DIR)/dnotam-originator
 PUBLISHER_DIR  := $(APPS_DIR)/dnotam-publisher
 CONSUMER_DIR   := $(APPS_DIR)/dnotam-consumer
-HUB_DIR        := $(APPS_DIR)/eurocontrol-hub
+HUB_DIR        := $(APPS_DIR)/federation-hub
 
 IMAGE_ORIGINATOR := sfg-dnotam-originator:latest
 IMAGE_PUBLISHER  := sfg-dnotam-publisher:latest
 IMAGE_CONSUMER   := sfg-dnotam-consumer:latest
-IMAGE_HUB        := sfg-eurocontrol-hub:latest
+IMAGE_HUB        := sfg-federation-hub:latest
 
 ORIGINATOR_URL := http://localhost:8000
 GRAFANA_UI     := http://localhost:3000
@@ -55,9 +55,9 @@ help:
 	@echo "    make open-grafana       Open Grafana  (localhost:3000)"
 	@echo "    make open-artemis       Open Artemis  (localhost:8161)"
 	@echo ""
-	@echo "  EUROCONTROL FEDERATION HUB"
+	@echo "  FEDERATION HUB"
 	@echo "    make federation-network Create shared network (run once)"
-	@echo "    make build-hub          Build eurocontrol-hub image"
+	@echo "    make build-hub          Build federation-hub image"
 	@echo "    make hub-up             Start Federation Hub stack"
 	@echo "    make hub-down           Stop Federation Hub stack"
 	@echo "    make open-hub           Open Hub Federation UI  (localhost:18080)"
@@ -185,7 +185,7 @@ open-grafana:
 open-artemis:
 	$(OPEN) $(ARTEMIS_UI)
 
-# ─── Eurocontrol Federation Hub ───────────────────────────────────────────────
+# ─── Federation Hub ───────────────────────────────────────────────
 
 .PHONY: federation-network
 federation-network:

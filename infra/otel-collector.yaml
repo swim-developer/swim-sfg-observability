@@ -12,7 +12,7 @@ processors:
     send_batch_size: 512
 
   # Strips internal infrastructure attributes before federation export.
-  # Models the EUROCONTROL NM pattern: each provider shares only what is
+  # Models the Network Manager pattern: each provider shares only what is
   # needed for cross-organisational correlation, not internal platform details.
   transform/hub-sanitize:
     trace_statements:
