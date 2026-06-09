@@ -1,0 +1,90 @@
+{
+  "title": "SWIM dNOTAM \u2014 Federation Hub",
+  "uid": "swim-sfg-hub",
+  "version": 1,
+  "schemaVersion": 39,
+  "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "tags": [
+    "swim",
+    "dnotam",
+    "federation"
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "table",
+      "title": "Recent Traces \u2014 federated",
+      "description": "Traces received from all federated organisations via the OTel Collector hub pipeline",
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "uid": "tempo",
+        "type": "tempo"
+      },
+      "targets": [
+        {
+          "queryType": "traceql",
+          "query": "{}",
+          "refId": "A",
+          "limit": 20
+        }
+      ],
+      "options": {
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "traceID"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Trace ID"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open in Explore",
+                    "internal": {
+                      "query": {
+                        "query": "${__value.raw}",
+                        "queryType": "traceql"
+                      },
+                      "datasourceUid": "tempo",
+                      "datasourceName": "Tempo (Hub)"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": []
+  },
+  "links": []
+}

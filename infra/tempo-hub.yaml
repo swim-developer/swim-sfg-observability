@@ -1,6 +1,13 @@
 server:
   http_listen_port: 3200
 
+live_store:
+  max_trace_idle: 2s
+  fail_on_high_lag: false
+
+query_frontend:
+  query_end_cutoff: 5s
+
 distributor:
   receivers:
     otlp:
