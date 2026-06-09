@@ -56,7 +56,7 @@
       },
       "targets": [
         {
-          "expr": "sum(increase(dnotam_dispatches_total[$__range]))",
+          "expr": "round(sum(increase(dnotam_dispatches_total[$__range])))",
           "legendFormat": "dispatches",
           "refId": "A"
         }
@@ -103,7 +103,7 @@
       },
       "targets": [
         {
-          "expr": "sum(increase(dnotam_publishes_total[$__range]))",
+          "expr": "round(sum(increase(dnotam_publishes_total[$__range])))",
           "legendFormat": "publishes",
           "refId": "A"
         }
@@ -113,6 +113,7 @@
       "id": 3,
       "type": "stat",
       "title": "Validation Failures",
+      "noValue": "0",
       "gridPos": {
         "h": 4,
         "w": 6,
