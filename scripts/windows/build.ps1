@@ -19,4 +19,10 @@ podman build --no-cache -t sfg-dnotam-consumer:latest `
     "$root\apps\dnotam-consumer"
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+Write-Host "Building sfg-federation-hub..."
+podman build --no-cache -t sfg-federation-hub:latest `
+    -f "$root\apps\federation-hub\Containerfile" `
+    "$root\apps\federation-hub"
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 Write-Host "All images built."

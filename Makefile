@@ -77,7 +77,7 @@ help:
 build: build-originator build-publisher build-consumer build-hub
 
 .PHONY: build-all
-build-all: build build-hub
+build-all: build
 
 .PHONY: build-originator
 build-originator:
