@@ -23,8 +23,8 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
     volumes:
       - ./grafana/hub-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro,z
-      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro,z
-      - ./grafana/dashboards:/etc/grafana/dashboards:ro,z
+      - ./grafana/hub-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro,z
+      - ./grafana/hub-dashboards:/etc/grafana/dashboards:ro,z
     networks:
       - hub-default
     depends_on:
