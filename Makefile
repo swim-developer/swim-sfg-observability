@@ -74,7 +74,7 @@ help:
 # ─── Build ────────────────────────────────────────────────────────────────────
 
 .PHONY: build
-build: build-originator build-publisher build-consumer
+build: build-originator build-publisher build-consumer build-hub
 
 .PHONY: build-all
 build-all: build build-hub
