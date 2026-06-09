@@ -5,7 +5,11 @@ server:
 stream_over_http_enabled: true
 
 live_store:
-  max_trace_idle: 5s
+  max_trace_idle: 2s
+  fail_on_high_lag: false
+
+query_frontend:
+  query_end_cutoff: 5s
 
 distributor:
   receivers:
@@ -24,7 +28,7 @@ metrics_generator:
   storage:
     path: /tmp/tempo/generator/wal
     remote_write:
-      - url: http://prometheus:9090/api/v1/write
+      - url: http://sfg-prometheus:9090/api/v1/write
         send_exemplars: true
   processor:
     service_graphs:
