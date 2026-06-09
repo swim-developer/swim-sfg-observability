@@ -7,7 +7,7 @@ services:
     ports:
       - "13200:3200"
     volumes:
-      - ./tempo-hub.yaml:/etc/tempo.yaml:ro
+      - ./tempo-hub.yaml:/etc/tempo.yaml:ro,z
     networks:
       - hub-default
       - swim-federation
@@ -22,9 +22,9 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_AUTH_ANONYMOUS_ENABLED: "true"
     volumes:
-      - ./grafana/hub-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
-      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
-      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+      - ./grafana/hub-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro,z
+      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro,z
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro,z
     networks:
       - hub-default
     depends_on:
