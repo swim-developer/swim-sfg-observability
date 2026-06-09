@@ -16,13 +16,19 @@ This demo proves that the W3C `traceparent` header solves this — and that it c
 
 ---
 
-## The three stakeholder concerns
+## Three questions this demo answers
 
-| Stakeholder | Concern | How this demo answers it |
-|---|---|---|
-| **Stakeholder A** | How does trace context cross HTTP→AMQP? | The `traceparent` is injected into AMQP Application Properties. The consumer extracts it before processing, re-attaching to the same trace tree. |
-| **Stakeholder B** | Does this lock us into a vendor? | W3C Trace Context is a browser/industry standard. AMQP Application Properties is an OASIS standard. Any vendor implementation can read/write both. |
-| **Stakeholder C** | How do we separate infrastructure noise from business events? | A `SERVICE_LAYER` taxonomy is enforced in code. Infrastructure metrics (broker latency, network) stay in the platform layer. Application logs carry only business semantics. |
+### "How does the Trace ID survive the HTTP→AMQP boundary without touching the aviation payload?"
+
+When the originator dispatches a DNOTAM over HTTP, the `traceparent` header travels with the request. The publisher receives it, creates a child span, and — before emitting the AMQP message — calls `inject()` from the W3C Propagators API, writing the `traceparent` string into the message's **Application Properties**. The aviation payload is untouched. The consumer calls `extract()` on arrival, reconstructing the span context before any business logic runs. One 32-character Trace ID, invariant from the first HTTP call to the last AMQP consume. This is the wire-level behaviour that SPEC-170 should standardise.
+
+### "Does this mandate OpenTelemetry? Can we use any compliant implementation?"
+
+The `traceparent` injected into AMQP Application Properties is a plain string defined by the W3C. The Application Properties section is defined by OASIS (AMQP 1.0 spec). Neither is OpenTelemetry-specific. Any AMQP 1.0 client — Apache Qpid, IBM MQ, Azure Service Bus, RabbitMQ with the AMQP plugin — can read and write it without an OTel SDK. OpenTelemetry is used here as the reference implementation because it is the most widely adopted. The wire format is the standard; the SDK is a convenience.
+
+### "How do we guarantee that aviation business events are never mixed with infrastructure noise?"
+
+Every log line emitted by the application carries three mandatory fields: `swim_perimeter: SERVICE_LAYER`, `event_type` (`OPERATIONAL_EVENT` or `VALIDATION_FAILURE`), and `service_context: dNOTAM`. This taxonomy is enforced in code — not in log filters, not in dashboards, not in post-processing. Infrastructure events (broker connections, container health, network retries) are never written by the application. What reaches Loki is exclusively business semantics.
 
 ---
 
@@ -119,15 +125,15 @@ flowchart LR
     end
 
     subgraph HTTP_HOP["2 · HTTP boundary"]
-        H_HDR["traceparent header\n00-<b>4bf9...4736</b>-aaa1-01"]
+        H_HDR["traceparent header\n00-4bf9...4736-aaa1-01"]
     end
 
     subgraph AMQP_PUB["3 · AMQP publish"]
-        A_PROP["Application Properties\ntraceparent = 00-<b>4bf9...4736</b>-bbb2-01"]
+        A_PROP["Application Properties\ntraceparent = 00-4bf9...4736-bbb2-01"]
     end
 
     subgraph AMQP_CON["4 · AMQP consume"]
-        C_EXT["Propagator.Extract\ntraceparent = 00-<b>4bf9...4736</b>-ccc3-01"]
+        C_EXT["Propagator.Extract\ntraceparent = 00-4bf9...4736-ccc3-01"]
     end
 
     O_SPAN ==>|"inject into\nHTTP header"| H_HDR
@@ -485,9 +491,7 @@ You can also use the Hub UI at http://localhost:18080 to search by Trace ID inte
 
 ## Observability explained
 
-### Why three pillars?
-
-The SFG proposal is about wire-level standards, not a specific tool. Demonstrating Traces + Logs + Metrics proves that W3C Trace Context integrates naturally with the entire observability ecosystem, regardless of vendor.
+Demonstrating Traces + Logs + Metrics together is deliberate: it proves that W3C Trace Context integrates naturally with the full observability ecosystem, regardless of which vendor's tooling an organisation chooses.
 
 ### Traces (Grafana Tempo)
 
@@ -506,7 +510,7 @@ All three services write structured logs via their respective OTel logging bridg
 
 Every log record carries the current `traceId` as an attribute. To navigate from a trace to its related logs: open the trace in Explore, then click **Logs** on any span — Grafana uses the `tracesToLogsV2` integration to show the corresponding Loki entries.
 
-The Stakeholder C taxonomy is enforced: every business log has `swim_perimeter: SERVICE_LAYER`, `event_type: OPERATIONAL_EVENT | VALIDATION_FAILURE`, and `service_context: dNOTAM`. Infrastructure logs (broker connections, container runtime) are not written by the application.
+The `SERVICE_LAYER` taxonomy is enforced in code: every business log carries `swim_perimeter: SERVICE_LAYER`, `event_type: OPERATIONAL_EVENT | VALIDATION_FAILURE`, and `service_context: dNOTAM`. Infrastructure logs (broker connections, container runtime) are not written by the application.
 
 ### Metrics (Prometheus + Grafana)
 
