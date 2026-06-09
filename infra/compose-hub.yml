@@ -21,6 +21,7 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Editor
     volumes:
       - ./grafana/hub-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro,z
       - ./grafana/hub-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro,z
