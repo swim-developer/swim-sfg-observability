@@ -56,7 +56,7 @@
       },
       "targets": [
         {
-          "expr": "round(sum(increase(dnotam_dispatches_total[$__range])))",
+          "expr": "sum(dnotam_dispatches_total)",
           "legendFormat": "dispatches",
           "refId": "A"
         }
@@ -103,7 +103,7 @@
       },
       "targets": [
         {
-          "expr": "round(sum(increase(dnotam_publishes_total[$__range])))",
+          "expr": "sum(dnotam_publishes_total)",
           "legendFormat": "publishes",
           "refId": "A"
         }
