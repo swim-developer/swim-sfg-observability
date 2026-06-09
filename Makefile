@@ -97,7 +97,6 @@ build-consumer:
 .PHONY: build-hub
 build-hub:
 	@echo "  Building $(IMAGE_HUB)..."
-	cd $(HUB_DIR) && ./mvnw clean package -DskipTests -q
 	podman build --no-cache -t $(IMAGE_HUB) -f $(HUB_DIR)/Containerfile $(HUB_DIR)
 
 # ─── Mode A — Full stack ──────────────────────────────────────────────────────
