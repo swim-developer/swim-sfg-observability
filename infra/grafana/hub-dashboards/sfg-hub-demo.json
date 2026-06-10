@@ -15,15 +15,25 @@
   ],
   "panels": [
     {
+      "id": 2,
+      "type": "text",
+      "title": "Federated Organisations",
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "mode": "markdown",
+        "content": "## What this hub sees\n\nThis hub receives **sanitised spans only** — internal attributes (host, SDK, process) are stripped at the OTel Collector before forwarding. What remains is the aviation business context and the `traceparent` that ties it all together.\n\n| Organisation | `service.namespace` | Service | W3C Baggage origin |\n|---|---|---|---|\n| Aeroporto de Lisboa | `aeroporto-de-lisboa` | `dnotam-originator` | `org.icao=LPPT` |\n| NAV Portugal | `nav-portugal` | `dnotam-publisher` | — propagated through |\n| TAP Air Portugal | `tap-air-portugal` | `dnotam-consumer` | — propagated through |\n\nQuery the Federation API for full participant detail:\n```\nGET http://localhost:18080/v1/federation/traces/{traceId}\n```"
+      }
+    },
+    {
       "id": 1,
       "type": "table",
       "title": "Recent Traces \u2014 federated",
-      "description": "Traces received from all federated organisations via the OTel Collector hub pipeline",
+      "description": "Traces received from all federated organisations. Click any Trace ID to open the full waterfall in Explore.",
       "gridPos": {
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 7
       },
       "datasource": {
         "uid": "tempo",

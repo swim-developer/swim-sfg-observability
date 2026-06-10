@@ -115,17 +115,18 @@ public partial class AmqpConsumerService : BackgroundService
     private void ProcessMessage(Message message)
     {
         var startTimestamp = Stopwatch.GetTimestamp();
-        var (traceparent, tracestate) = ExtractTraceContext(message);
+        var carrier = ExtractAmqpCarrier(message);
+        var traceparent = carrier.GetValueOrDefault("traceparent", "");
 
         if (string.IsNullOrEmpty(traceparent))
             _logger.LogWarning("AMQP message received without traceparent in Application Properties — trace context will be broken");
 
-        var carrier = new Dictionary<string, string> { ["traceparent"] = traceparent };
-        if (!string.IsNullOrEmpty(tracestate))
-            carrier["tracestate"] = tracestate;
-
         var parentContext = Propagator.Extract(default, carrier,
             (c, key) => c.TryGetValue(key, out var value) ? [value] : []);
+
+        var orgIcao = parentContext.Baggage.GetBaggage("org.icao") ?? "unknown";
+        var orgName = parentContext.Baggage.GetBaggage("org.name") ?? "unknown";
+        var orgRole = parentContext.Baggage.GetBaggage("org.role") ?? "unknown";
 
         var json = message.Body switch
         {
@@ -143,6 +144,9 @@ public partial class AmqpConsumerService : BackgroundService
         activity?.SetTag("notam.runway", notam?.Runway);
         activity?.SetTag("messaging.system", "amqp");
         activity?.SetTag("messaging.destination.name", "swim.dnotam.updates");
+        activity?.SetTag("org.icao", orgIcao);
+        activity?.SetTag("org.name", orgName);
+        activity?.SetTag("org.role", orgRole);
 
         MessagesConsumed.Add(1,
             new KeyValuePair<string, object?>("notam.aerodrome", notam?.Aerodrome),
@@ -153,11 +157,11 @@ public partial class AmqpConsumerService : BackgroundService
             activity?.SetStatus(ActivityStatusCode.Error, "Invalid runway code");
             ValidationFailures.Add(1,
                 new KeyValuePair<string, object?>("notam.aerodrome", notam?.Aerodrome));
-            SwimLogger.ValidationFailure(_logger, $"Invalid runway code '{notam?.Runway}' for aerodrome {notam?.Aerodrome}", notam, traceparent);
+            SwimLogger.ValidationFailure(_logger, $"Invalid runway code '{notam?.Runway}' for aerodrome {notam?.Aerodrome} | originated by {orgName} ({orgIcao})", notam, traceparent);
         }
         else
         {
-            SwimLogger.OperationalEvent(_logger, $"DNOTAM integrated for flight operation at {notam?.Aerodrome}", notam, traceparent);
+            SwimLogger.OperationalEvent(_logger, $"DNOTAM integrated for flight operation at {notam?.Aerodrome} | originated by {orgName} ({orgIcao})", notam, traceparent);
         }
 
         var elapsedMs = Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds;
@@ -165,18 +169,18 @@ public partial class AmqpConsumerService : BackgroundService
             new KeyValuePair<string, object?>("notam.type", notam?.NotamType));
     }
 
-    private static (string traceparent, string tracestate) ExtractTraceContext(Message message)
+    private static Dictionary<string, string> ExtractAmqpCarrier(Message message)
     {
-        var traceparent = "";
-        var tracestate = "";
+        var carrier = new Dictionary<string, string>();
+        if (message.ApplicationProperties?.Map is null) return carrier;
 
-        if (message.ApplicationProperties?.Map.TryGetValue("traceparent", out var tp) == true)
-            traceparent = tp?.ToString() ?? "";
+        foreach (var key in new[] { "traceparent", "tracestate", "baggage" })
+        {
+            if (message.ApplicationProperties.Map.TryGetValue(key, out var value) && value is not null)
+                carrier[key] = value.ToString()!;
+        }
 
-        if (message.ApplicationProperties?.Map.TryGetValue("tracestate", out var ts) == true)
-            tracestate = ts?.ToString() ?? "";
-
-        return (traceparent, tracestate);
+        return carrier;
     }
 
     [GeneratedRegex(@"^\d{2}[LRC]?$")]

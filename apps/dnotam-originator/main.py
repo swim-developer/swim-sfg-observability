@@ -7,14 +7,16 @@ import httpx
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from opentelemetry import metrics, trace
+from opentelemetry import baggage as baggage_api, context, metrics, trace
 from opentelemetry._logs import set_logger_provider
+from opentelemetry.baggage.propagation import W3CBaggagePropagator
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from opentelemetry.propagate import inject
+from opentelemetry.propagate import inject, set_global_textmap
+from opentelemetry.propagators.composite import CompositePropagator
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.exporter.prometheus import PrometheusMetricReader
@@ -22,6 +24,7 @@ from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 SERVICE_NAME = "dnotam-originator"
 SERVICE_VERSION = "1.0.0"
@@ -30,7 +33,7 @@ _resource = Resource.create({
     "service.name": SERVICE_NAME,
     "service.version": SERVICE_VERSION,
     "deployment.environment": os.getenv("DEPLOYMENT_ENV", "local"),
-    "service.namespace": "swim-sfg",
+    "service.namespace": "aeroporto-de-lisboa",
 })
 
 _otlp_endpoint = os.getenv("OTLP_ENDPOINT", "http://tempo:4317")
@@ -41,6 +44,11 @@ _provider.add_span_processor(
 )
 trace.set_tracer_provider(_provider)
 _tracer = trace.get_tracer(SERVICE_NAME, SERVICE_VERSION)
+
+set_global_textmap(CompositePropagator([
+    TraceContextTextMapPropagator(),
+    W3CBaggagePropagator(),
+]))
 
 _loki_url = os.getenv("LOKI_OTLP_ENDPOINT", "http://loki:3100/otlp/v1/logs")
 _log_provider = LoggerProvider(resource=_resource)
@@ -153,8 +161,13 @@ async def _publish(payload: dict) -> dict:
         span.set_attribute("notam.type", payload["notam_type"])
         span.set_attribute("notam.runway", payload["runway"])
 
+        ctx = context.get_current()
+        ctx = baggage_api.set_baggage("org.icao", "LPPT", context=ctx)
+        ctx = baggage_api.set_baggage("org.name", "aeroporto-de-lisboa", context=ctx)
+        ctx = baggage_api.set_baggage("org.role", "airport-operator", context=ctx)
+
         headers = {}
-        inject(headers)
+        inject(headers, context=ctx)
         traceparent = headers.get("traceparent", "")
 
         _swim_log("OPERATIONAL_EVENT", "Dispatching DNOTAM request", payload, traceparent)

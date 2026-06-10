@@ -24,7 +24,8 @@ public class TraceAssembler {
 
         for (Object batchObj : batches) {
             if (!(batchObj instanceof Map<?, ?> batch)) continue;
-            String service = extractServiceName((Map<String, Object>) batch);
+            String service = extractResourceAttribute((Map<String, Object>) batch, "service.name");
+            String org = extractResourceAttribute((Map<String, Object>) batch, "service.namespace");
             List<Map<String, Object>> spans = extractSpans((Map<String, Object>) batch);
             for (Map<String, Object> span : spans) {
                 String operation = (String) span.getOrDefault("name", "unknown");
@@ -34,8 +35,9 @@ public class TraceAssembler {
                 long endNano = toLong(span.get("endTimeUnixNano"));
                 long durationMicros = (endNano - startNano) / 1000L;
                 boolean hasError = hasError((Map<String, Object>) span);
-                services.add(service);
+                services.add(org.isBlank() ? service : org + " / " + service);
                 participants.add(new Participant(
+                        org,
                         service,
                         operation,
                         spanId,
@@ -56,14 +58,14 @@ public class TraceAssembler {
     }
 
     @SuppressWarnings("unchecked")
-    private String extractServiceName(Map<String, Object> batch) {
+    private String extractResourceAttribute(Map<String, Object> batch, String key) {
         Object resource = batch.get("resource");
-        if (!(resource instanceof Map<?, ?> r)) return "unknown";
+        if (!(resource instanceof Map<?, ?> r)) return "";
         Object attrs = r.get("attributes");
-        if (!(attrs instanceof List<?> list)) return "unknown";
+        if (!(attrs instanceof List<?> list)) return "";
         for (Object attr : list) {
             if (!(attr instanceof Map<?, ?> a)) continue;
-            if ("service.name".equals(a.get("key"))) {
+            if (key.equals(a.get("key"))) {
                 Object val = ((Map<String, Object>) a).get("value");
                 if (val instanceof Map<?, ?> v) {
                     Object sv = ((Map<String, Object>) v).get("stringValue");
@@ -71,7 +73,7 @@ public class TraceAssembler {
                 }
             }
         }
-        return "unknown";
+        return "";
     }
 
     @SuppressWarnings("unchecked")

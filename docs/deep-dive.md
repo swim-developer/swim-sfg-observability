@@ -155,6 +155,56 @@ You can also use the Hub UI at http://localhost:18080 to search by Trace ID inte
 
 ---
 
+## Organisation identity and context propagation
+
+### `service.namespace` — who owns this service
+
+The OpenTelemetry Resource attribute `service.namespace` (stable, [semconv](https://opentelemetry.io/docs/specs/semconv/registry/entities/service/)) identifies the organisation that operates a service. It is set once at SDK initialisation and attached automatically to every span and log record.
+
+In this demo:
+
+| Organisation | `service.namespace` | `service.name` |
+|---|---|---|
+| Aeroporto de Lisboa (Airport Operator) | `aeroporto-de-lisboa` | `dnotam-originator` |
+| NAV Portugal (ANSP/AISP) | `nav-portugal` | `dnotam-publisher` |
+| TAP Air Portugal (Airline) | `tap-air-portugal` | `dnotam-consumer` |
+| Network Manager (Federation Hub) | `network-manager` | `federation-hub` |
+
+The `service.namespace` is visible in every span in Grafana Explore (Resource attributes section), and the Federation Hub API returns `"org": "aeroporto-de-lisboa"` for each participant in the trace.
+
+---
+
+### W3C Baggage — dynamic operational context
+
+[W3C Baggage](https://www.w3.org/TR/baggage/) is a companion specification to W3C Trace Context. Where `traceparent` carries the trace identity, `baggage` carries arbitrary application-defined key-value pairs that propagate across every service boundary.
+
+Wire representation:
+```
+traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
+baggage:     org.icao=LPPT,org.name=aeroporto-de-lisboa,org.role=airport-operator
+```
+
+The `baggage` header travels in HTTP headers and in AMQP Application Properties — alongside `traceparent`, through the same `inject`/`extract` mechanism, using the same `CompositePropagator`.
+
+In this demo, the originator (Aeroporto de Lisboa) sets:
+
+| Baggage key | Value |
+|---|---|
+| `org.icao` | `LPPT` |
+| `org.name` | `aeroporto-de-lisboa` |
+| `org.role` | `airport-operator` |
+
+These values propagate automatically through the publisher (Quarkus SmallRye Reactive Messaging with `tracing-enabled=true`) and are extracted by the consumer, which logs:
+```
+DNOTAM integrated for flight operation at LPPT | originated by aeroporto-de-lisboa (LPPT)
+```
+
+and sets span attributes `org.icao`, `org.name`, `org.role` on the `dnotam.process` span, visible in Grafana Explore.
+
+**Why this matters for SPEC-170:** standardising `traceparent` in AMQP Application Properties also standardises `baggage` at zero additional cost — it is the same mechanism, the same wire position, the same propagator call. Organisations can use Baggage to carry ICAO designators, AIRAC cycle identifiers, or any aviation operational context across every protocol boundary without modifying the aviation payload.
+
+---
+
 ## Observability concepts
 
 ### Distributed Tracing — W3C Trace Context

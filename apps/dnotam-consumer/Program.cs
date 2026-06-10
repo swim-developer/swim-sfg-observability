@@ -1,9 +1,16 @@
 using DnotamConsumer;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+
+Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
+    new TraceContextPropagator(),
+    new BaggagePropagator()
+]));
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -11,7 +18,7 @@ var otlpEndpoint = builder.Configuration["OTLP_ENDPOINT"] ?? "http://tempo:4317"
 var lokiEndpoint = builder.Configuration["LOKI_OTLP_ENDPOINT"] ?? "http://loki:3100/otlp/v1/logs";
 var metricsPort = int.Parse(builder.Configuration["METRICS_PORT"] ?? "9464");
 var resource = ResourceBuilder.CreateDefault()
-    .AddService("dnotam-consumer", serviceVersion: "1.0.0", serviceNamespace: "swim-sfg")
+    .AddService("dnotam-consumer", serviceVersion: "1.0.0", serviceNamespace: "tap-air-portugal")
     .AddAttributes([
         new("deployment.environment", builder.Configuration["DEPLOYMENT_ENV"] ?? "local"),
     ]);
