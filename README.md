@@ -1,4 +1,4 @@
-# SWIM Yellow Profile — Distributed Tracing Demo
+# SWIM Yellow Profile: Distributed Tracing Demo
 
 Proof-of-concept for the **SWIM Foundation Group (SFG)** validating the proposal to add W3C Trace Context propagation as a wire-level requirement in **EUROCONTROL SPEC-170 (SWIM-TI Yellow Profile)**.
 
@@ -6,13 +6,13 @@ Proof-of-concept for the **SWIM Foundation Group (SFG)** validating the proposal
 
 ## Why this matters
 
-The Yellow Profile mandates AMQP 1.0 and HTTP/REST as protocol bindings, but says nothing about how observability metadata crosses protocol boundaries. In multi-provider environments — where an airport, an ANSP, and an airline each run independent infrastructure — a single operational transaction (a DNOTAM) crosses multiple organisation borders, each potentially using a different technology stack.
+The Yellow Profile mandates AMQP 1.0 and HTTP/REST as protocol bindings, but says nothing about how observability metadata crosses protocol boundaries. In multi-provider environments (where an airport, an ANSP, and an airline each run independent infrastructure), a single operational transaction (a DNOTAM) crosses multiple organisation borders, each potentially using a different technology stack.
 
 Without a standardised mechanism to carry a correlation identifier across those boundaries, it is impossible to answer:
 
-> *"This DNOTAM was published at 10:42 UTC — why is the federation hub flagging it as invalid at 10:42:03?"*
+> *"This DNOTAM was published at 10:42 UTC. Why is the federation hub flagging it as invalid at 10:42:03?"*
 
-This demo proves that the W3C `traceparent` header solves this — and that it can be carried through AMQP 1.0 Application Properties without modifying the aviation payload.
+This demo proves that the W3C `traceparent` header solves this, and that it can be carried through AMQP 1.0 Application Properties without modifying the aviation payload.
 
 ---
 
@@ -20,15 +20,15 @@ This demo proves that the W3C `traceparent` header solves this — and that it c
 
 ### "How does the Trace ID survive the HTTP→AMQP boundary without touching the aviation payload?"
 
-When the originator dispatches a DNOTAM over HTTP, the `traceparent` header travels with the request. The publisher receives it, creates a child span, and — before emitting the AMQP message — calls `inject()` from the W3C Propagators API, writing the `traceparent` string into the message's **Application Properties**. The aviation payload is untouched. The consumer calls `extract()` on arrival, reconstructing the span context before any business logic runs. One 32-character Trace ID, invariant from the first HTTP call to the last AMQP consume. This is the wire-level behaviour that SPEC-170 should standardise.
+When the originator dispatches a DNOTAM over HTTP, the `traceparent` header travels with the request. The publisher receives it, creates a child span, and, before emitting the AMQP message, calls `inject()` from the W3C Propagators API, writing the `traceparent` string into the message's **Application Properties**. The aviation payload is untouched. The consumer calls `extract()` on arrival, reconstructing the span context before any business logic runs. One 32-character Trace ID, invariant from the first HTTP call to the last AMQP consume. This is the wire-level behaviour that SPEC-170 should standardise.
 
 ### "Does this mandate OpenTelemetry? Can we use any compliant implementation?"
 
-The `traceparent` injected into AMQP Application Properties is a plain string defined by the W3C. The Application Properties section is defined by OASIS (AMQP 1.0 spec). Neither is OpenTelemetry-specific. Any AMQP 1.0 client — Apache Qpid, IBM MQ, Azure Service Bus, RabbitMQ with the AMQP plugin — can read and write it without an OTel SDK. OpenTelemetry is used here as the reference implementation because it is the most widely adopted. The wire format is the standard; the SDK is a convenience.
+The `traceparent` injected into AMQP Application Properties is a plain string defined by the W3C. The Application Properties section is defined by OASIS (AMQP 1.0 spec). Neither is OpenTelemetry-specific. Any AMQP 1.0 client (Apache Qpid, IBM MQ, Azure Service Bus, RabbitMQ with the AMQP plugin) can read and write it without an OTel SDK. OpenTelemetry is used here as the reference implementation because it is the most widely adopted. The wire format is the standard; the SDK is a convenience.
 
 ### "How do we guarantee that aviation business events are never mixed with infrastructure noise?"
 
-Every log line emitted by the application carries three mandatory fields: `swim_perimeter: SERVICE_LAYER`, `event_type` (`OPERATIONAL_EVENT` or `VALIDATION_FAILURE`), and `service_context: dNOTAM`. This taxonomy is enforced in code — not in log filters, not in dashboards, not in post-processing. Infrastructure events (broker connections, container health, network retries) are never written by the application. What reaches Loki is exclusively business semantics.
+Every log line emitted by the application carries three mandatory fields: `swim_perimeter: SERVICE_LAYER`, `event_type` (`OPERATIONAL_EVENT` or `VALIDATION_FAILURE`), and `service_context: dNOTAM`. This taxonomy is enforced in code, not in log filters, not in dashboards, not in post-processing. Infrastructure events (broker connections, container health, network retries) are never written by the application. What reaches Loki is exclusively business semantics.
 
 ---
 
@@ -36,7 +36,7 @@ Every log line emitted by the application carries three mandatory fields: `swim_
 
 ### Federated multi-organisation view
 
-This is the production model proposed for SPEC-170. Each organisation runs its own service and observability stack. The Federation Hub aggregates curated telemetry using only the W3C `traceparent` as the correlation key — no access to internal logs, metrics, or platform details.
+This is the production model proposed for SPEC-170. Each organisation runs its own service and observability stack. The Federation Hub aggregates curated telemetry using only the W3C `traceparent` as the correlation key, with no access to internal logs, metrics, or platform details.
 
 ```mermaid
 flowchart TB
@@ -112,11 +112,11 @@ flowchart TB
     style HUB fill:none,stroke:#b8860b,stroke-width:3px,color:#b8860b
 ```
 
-> **Key insight:** the three services run at different organisations with different technology stacks. The `traceparent` is the only thing they share. The OTel Collector strips internal attributes (host names, process IDs, SDK versions) before forwarding to the Federation Hub — each organisation controls what it exposes.
+> **Key insight:** the three services run at different organisations with different technology stacks. The `traceparent` is the only thing they share. The OTel Collector strips internal attributes (host names, process IDs, SDK versions) before forwarding to the Federation Hub; each organisation controls what it exposes.
 
 ### How trace context crosses protocol boundaries
 
-The `traceparent` header survives the HTTP → AMQP protocol boundary through AMQP Application Properties — the aviation payload is never modified.
+The `traceparent` header survives the HTTP → AMQP protocol boundary through AMQP Application Properties. The aviation payload is never modified.
 
 ```mermaid
 flowchart LR
@@ -149,7 +149,7 @@ flowchart LR
     style AMQP_CON fill:none,stroke:#8b5cf6,stroke-width:2px,stroke-dasharray:6 4,color:#8b5cf6
 ```
 
-> **trace-id** (`4bf9...4736`) is invariant across all four hops — it is the 32-character correlation key. Only the **parent-id** changes at each service boundary, creating the parent→child span relationships that Tempo renders as a waterfall timeline.
+> **trace-id** (`4bf9...4736`) is invariant across all four hops: the 32-character correlation key. Only the **parent-id** changes at each service boundary, creating the parent→child span relationships that Tempo renders as a waterfall timeline.
 
 ---
 
@@ -174,9 +174,9 @@ flowchart LR
 
 ## Two demonstration scenarios
 
-This project supports two distinct demonstrations. They are not variations of the same thing — they answer different questions.
+This project supports two distinct demonstrations. They are not variations of the same thing; they answer different questions.
 
-### Scenario A — Fully internal stack (single organisation)
+### Scenario A: Fully internal stack
 
 ```
 [Originator] --HTTP--> [Publisher] --AMQP--> [Consumer]
@@ -192,7 +192,7 @@ This project supports two distinct demonstrations. They are not variations of th
 
 ---
 
-### Scenario B — Federated view (federation hub)
+### Scenario B: Federated view
 
 ```
 [Originator] --HTTP--> [Publisher] --AMQP--> [Consumer]
@@ -205,11 +205,11 @@ This project supports two distinct demonstrations. They are not variations of th
                              [Hub Grafana]
 ```
 
-**What it proves:** in a multi-organisation environment (different ANSPs, AISPs, airlines), a neutral federation hub can aggregate telemetry from all parties using only the `traceparent` as the correlation key — without accessing internal logs, metrics, or platform details. Each organisation controls what it shares (only curated span attributes reach the hub, internal SDK/host/process data is stripped at the OTel Collector).
+**What it proves:** in a multi-organisation environment (different ANSPs, AISPs, airlines), a neutral federation hub can aggregate telemetry from all parties using only the `traceparent` as the correlation key, without accessing internal logs, metrics, or platform details. Each organisation controls what it shares (only curated span attributes reach the hub, internal SDK/host/process data is stripped at the OTel Collector).
 
 **This is the production model.** In the real world, each organisation runs its own stack (Scenario A). A neutral federation hub plays the hub role, correlating traces across organisational boundaries to detect end-to-end anomalies without requiring access to anyone's internal infrastructure.
 
-**The key point for the audience:** the same 32-character Trace ID that originated inside one organisation's internal stack is the key that the Federation Hub uses to reconstruct the full cross-organisation journey. No bilateral agreements, no proprietary connectors — just the W3C `traceparent` standard.
+**The key point for the audience:** the same 32-character Trace ID that originated inside one organisation's internal stack is the key that the Federation Hub uses to reconstruct the full cross-organisation journey. No bilateral agreements, no proprietary connectors. Just the W3C `traceparent` standard.
 
 ---
 
@@ -222,12 +222,12 @@ This is the single operational guide. Follow the steps in order.
 | Tool | macOS/Linux | Windows |
 |---|---|---|
 | Container runtime | [Podman Desktop](https://podman-desktop.io) | [Podman Desktop](https://podman-desktop.io) |
-| Build tool | `make` (pre-installed on most distros) | Not needed — use PowerShell scripts |
+| Build tool | `make` (pre-installed on most distros) | Not needed; use PowerShell scripts |
 | Source control | `git` | `git` |
 
-No language runtimes required — everything runs in containers.
+No language runtimes required; everything runs in containers.
 
-**Windows only — one-time setup:**
+**Windows only: one-time setup**
 
 Install the Compose provider (pick one):
 
@@ -244,14 +244,14 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 
 ---
 
-### Step 1 — Clone
+### Step 1: Clone
 
 ```bash
 git clone https://github.com/swim-developer/swim-sfg-observability.git
 cd swim-sfg-observability
 ```
 
-### Step 2 — Build images (first time only)
+### Step 2: Build images (first time only)
 
 | macOS/Linux | Windows (PowerShell) |
 |---|---|
@@ -259,21 +259,21 @@ cd swim-sfg-observability
 
 > Builds all images including the Federation Hub. Takes a few minutes on first run.
 
-### Step 3 — Start the stack
+### Step 3: Start the stack
 
 | macOS/Linux | Windows (PowerShell) |
 |---|---|
 | `make up` | `.\scripts\windows\up.ps1` |
 
-Wait ~15 seconds, then open these URLs in your browser — keep them open for the rest of the demo:
+Wait ~15 seconds, then open these URLs in your browser and keep them open for the rest of the demo:
 
 | UI | URL |
 |---|---|
 | DNOTAM Originator | [http://localhost:8000](http://localhost:8000) |
 | Grafana | [http://localhost:3000](http://localhost:3000) |
-| Artemis Console | [http://localhost:8161](http://localhost:8161) — admin / admin |
+| Artemis Console | [http://localhost:8161](http://localhost:8161) (login: admin / admin) |
 
-### Step 4 — Run Scenario A (valid and invalid DNOTAM)
+### Step 4: Run Scenario A
 
 With the stack running, trigger the scenarios from the terminal:
 
@@ -284,11 +284,11 @@ With the stack running, trigger the scenarios from the terminal:
 
 Or use the browser: open [http://localhost:8000](http://localhost:8000) and click **Dispatch** on either card.
 
-Watch the results in Grafana at [http://localhost:3000](http://localhost:3000) — the dashboard auto-refreshes every 2 seconds.
+Watch the results in Grafana at [http://localhost:3000](http://localhost:3000). The dashboard auto-refreshes every 2 seconds.
 
-### Step 5 — Add the Federation Hub (Scenario B)
+### Step 5: Add the Federation Hub
 
-The stack from Step 3 is still running. Add the hub on top — no restart needed:
+The stack from Step 3 is still running. Add the hub on top with no restart needed:
 
 | macOS/Linux | Windows (PowerShell) |
 |---|---|
@@ -301,9 +301,9 @@ Wait ~10 seconds, then open:
 | Hub Grafana | [http://localhost:13000](http://localhost:13000) |
 | Federation Hub API | [http://localhost:18080](http://localhost:18080) |
 
-Dispatch any DNOTAM again — the trace now appears in both Grafana (org) and Hub Grafana simultaneously.
+Dispatch any DNOTAM again; the trace will appear in both Grafana (org) and Hub Grafana simultaneously.
 
-### Step 6 — Stop everything when done
+### Step 6: Stop everything when done
 
 | macOS/Linux | Windows (PowerShell) |
 |---|---|
@@ -357,4 +357,4 @@ make dev-consumer       Run consumer locally (.NET)
 
 ## Further reading
 
-- [Technical deep dive](docs/deep-dive.md) — scenario walkthrough, federation hub internals, observability concepts, traceparent anatomy, and references
+- [Technical deep dive](docs/deep-dive.md): scenario walkthrough, federation hub internals, observability concepts, traceparent anatomy, and references

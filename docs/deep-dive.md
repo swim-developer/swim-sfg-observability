@@ -1,10 +1,10 @@
-# SWIM dNOTAM — Technical Deep Dive
+# SWIM dNOTAM: Technical Deep Dive
 
 ---
 
 ## Scenario walkthrough
 
-### Scenario 1 — Valid DNOTAM (runway 27R)
+### Scenario 1: Valid DNOTAM (runway 27R)
 
 **Linux / macOS:**
 ```bash
@@ -37,7 +37,7 @@ Expected: `[SERVICE_LAYER][OPERATIONAL_EVENT] DNOTAM integrated for flight opera
 
 ---
 
-### Scenario 2 — Invalid DNOTAM (runway ZZ9)
+### Scenario 2: Invalid DNOTAM (runway ZZ9)
 
 **Linux / macOS:**
 ```bash
@@ -50,9 +50,9 @@ make demo-invalid
 ```
 
 What happens internally:
-1. Same as Scenario 1, but the runway code is `ZZ9` — not a valid ICAO runway designator
-2. The publisher does NOT validate — it publishes the AMQP message as-is (correct behaviour: the publisher is a transport relay, not a validator)
-3. The consumer receives the message, extracts `traceparent`, checks the runway pattern `\d{2}[LRC]?` — `ZZ9` fails
+1. Same as Scenario 1, but the runway code is `ZZ9`, which is not a valid ICAO runway designator
+2. The publisher does NOT validate; it publishes the AMQP message as-is (correct behaviour: the publisher is a transport relay, not a validator)
+3. The consumer receives the message, extracts `traceparent`, checks the runway pattern `\d{2}[LRC]?`; `ZZ9` fails
 4. The consumer logs a `VALIDATION_FAILURE` and marks the span as ERROR
 
 Expected output in consumer logs:
@@ -70,7 +70,7 @@ Why this matters: the consumer is at a different organisation with no direct acc
 
 ### What it models
 
-In real SWIM deployments, an airport, an ANSP, and an airline each run their own observability stack. There is no shared dashboard. The W3C Trace Context proposal for SPEC-170 requires that the `traceparent` be standardised at the wire level — not the platform level.
+In real SWIM deployments, an airport, an ANSP, and an airline each run their own observability stack. There is no shared dashboard. The W3C Trace Context proposal for SPEC-170 requires that the `traceparent` be standardised at the wire level, not the platform level.
 
 The Federation Hub models a **neutral federation point**: a central service that receives spans from all organisations via a shared network (`swim-federation`), stores them in an independent trace backend, and exposes a SWIM-style REST API to query cross-organisation traces by Trace ID.
 
@@ -121,7 +121,7 @@ What each pipeline sees:
 | `service.instance.id` | ✅ | ❌ stripped |
 | `telemetry.sdk.*`, `host.*`, `process.*`, `os.*` | ✅ | ❌ stripped |
 
-Each organisation shares correlation context (Trace ID, service names, aviation business fields) without exposing internal platform details. Services are unaware of the hub — they send to one endpoint (the Collector), and routing is transparent.
+Each organisation shares correlation context (Trace ID, service names, aviation business fields) without exposing internal platform details. Services are unaware of the hub; they send to one endpoint (the Collector) and routing is transparent.
 
 ### Query the federation hub
 
@@ -157,7 +157,7 @@ You can also use the Hub UI at http://localhost:18080 to search by Trace ID inte
 
 ## Organisation identity and context propagation
 
-### `service.namespace` — who owns this service
+### `service.namespace`: who owns this service
 
 The OpenTelemetry Resource attribute `service.namespace` (stable, [semconv](https://opentelemetry.io/docs/specs/semconv/registry/entities/service/)) identifies the organisation that operates a service. It is set once at SDK initialisation and attached automatically to every span and log record.
 
@@ -174,7 +174,7 @@ The `service.namespace` is visible in every span in Grafana Explore (Resource at
 
 ---
 
-### W3C Baggage — dynamic operational context
+### W3C Baggage: dynamic operational context
 
 [W3C Baggage](https://www.w3.org/TR/baggage/) is a companion specification to W3C Trace Context. Where `traceparent` carries the trace identity, `baggage` carries arbitrary application-defined key-value pairs that propagate across every service boundary.
 
@@ -184,7 +184,7 @@ traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
 baggage:     org.icao=LPPT,org.name=aeroporto-de-lisboa,org.role=airport-operator
 ```
 
-The `baggage` header travels in HTTP headers and in AMQP Application Properties — alongside `traceparent`, through the same `inject`/`extract` mechanism, using the same `CompositePropagator`.
+The `baggage` header travels in HTTP headers and in AMQP Application Properties, alongside `traceparent`, through the same `inject`/`extract` mechanism, using the same `CompositePropagator`.
 
 In this demo, the originator (Aeroporto de Lisboa) sets:
 
@@ -201,20 +201,20 @@ DNOTAM integrated for flight operation at LPPT | originated by aeroporto-de-lisb
 
 and sets span attributes `org.icao`, `org.name`, `org.role` on the `dnotam.process` span, visible in Grafana Explore.
 
-**Why this matters for SPEC-170:** standardising `traceparent` in AMQP Application Properties also standardises `baggage` at zero additional cost — it is the same mechanism, the same wire position, the same propagator call. Organisations can use Baggage to carry ICAO designators, AIRAC cycle identifiers, or any aviation operational context across every protocol boundary without modifying the aviation payload.
+**Why this matters for SPEC-170:** standardising `traceparent` in AMQP Application Properties also standardises `baggage` at zero additional cost, using the same mechanism, the same wire position, the same propagator call. Organisations can use Baggage to carry ICAO designators, AIRAC cycle identifiers, or any aviation operational context across every protocol boundary without modifying the aviation payload.
 
 ---
 
 ## Observability concepts
 
-### Distributed Tracing — W3C Trace Context
+### Distributed Tracing: W3C Trace Context
 
 A **trace** is a directed acyclic graph of **spans**. Each span represents one unit of work (an HTTP call, a message publish, a message consume). Every span carries two identifiers:
 
 - **trace-id** (128-bit): shared and invariant across the entire transaction, regardless of how many services or protocols it crosses
 - **span-id** (64-bit): unique to that unit of work; becomes the `parent-id` in the next downstream service
 
-The mechanism for carrying these identifiers across service boundaries is defined in the **W3C Trace Context** specification ([https://www.w3.org/TR/trace-context/](https://www.w3.org/TR/trace-context/)). The wire format is the `traceparent` header — a plain string:
+The mechanism for carrying these identifiers across service boundaries is defined in the **W3C Trace Context** specification ([https://www.w3.org/TR/trace-context/](https://www.w3.org/TR/trace-context/)). The wire format is the `traceparent` header, a plain string:
 
 ```
 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
@@ -228,10 +228,10 @@ The mechanism for carrying these identifiers across service boundaries is define
 **How context crosses a protocol boundary:**
 
 The propagation API defines two operations:
-- `inject(carrier)` — writes the current trace context into a carrier (HTTP headers, AMQP properties, Kafka headers, etc.)
-- `extract(carrier)` — reads trace context from a carrier and reconstructs the parent span
+- `inject(carrier)`: writes the current trace context into a carrier (HTTP headers, AMQP properties, Kafka headers, etc.)
+- `extract(carrier)`: reads trace context from a carrier and reconstructs the parent span
 
-When the publisher injects into an AMQP message, it writes `traceparent` as a plain string into the AMQP 1.0 **Application Properties** section. The aviation payload is not touched. When the consumer extracts, it reads that string and re-creates a `SpanContext` pointing to the publisher's span as parent — connecting the two services in the same trace tree.
+When the publisher injects into an AMQP message, it writes `traceparent` as a plain string into the AMQP 1.0 **Application Properties** section. The aviation payload is not touched. When the consumer extracts, it reads that string and re-creates a `SpanContext` pointing to the publisher's span as parent, connecting the two services in the same trace tree.
 
 This is a specification-level behaviour, not a library-specific one. Any implementation that follows W3C Trace Context and the OTLP conventions for messaging (see [OpenTelemetry Messaging Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/messaging/)) can interoperate.
 
@@ -240,7 +240,7 @@ Grafana Tempo, Jaeger, Zipkin, OpenSearch (with the trace analytics plugin).
 
 ---
 
-### Structured Logging — OpenTelemetry Log Data Model
+### Structured Logging: OpenTelemetry Log Data Model
 
 A **structured log** is a log record with machine-readable key-value fields rather than free-form text. The [OpenTelemetry Log Data Model](https://opentelemetry.io/docs/specs/otel/logs/data-model/) defines a standard schema for log records that includes, among others, the `traceId` and `spanId` of the active span at the time the log was emitted. This is what enables correlation between logs and traces without any post-processing.
 
@@ -250,7 +250,7 @@ The transport format is **OTLP** (OpenTelemetry Protocol), which carries logs, t
 
 | Field | Values in this demo |
 |---|---|
-| `swim_perimeter` | `SERVICE_LAYER` (always — no infrastructure events) |
+| `swim_perimeter` | `SERVICE_LAYER` (infrastructure events are excluded) |
 | `event_type` | `OPERATIONAL_EVENT` or `VALIDATION_FAILURE` |
 | `service_context` | `dNOTAM` |
 
@@ -261,14 +261,14 @@ Grafana Loki, OpenSearch, Elasticsearch, Quickwit.
 
 ---
 
-### Metrics — OpenMetrics / Prometheus exposition format
+### Metrics: OpenMetrics / Prometheus exposition format
 
 A **metric** is a numerical measurement sampled over time. The [Prometheus exposition format](https://prometheus.io/docs/instrumenting/exposition_formats/) has become the de facto standard for metrics in cloud-native environments and is formalised as [OpenMetrics](https://openmetrics.io/) under the CNCF.
 
 Common metric types:
-- **Counter** — monotonically increasing value (e.g. total dispatches)
-- **Gauge** — value that can go up or down (e.g. current queue depth)
-- **Histogram** — distribution of values (e.g. dispatch duration in milliseconds)
+- **Counter**: monotonically increasing value (e.g. total dispatches)
+- **Gauge**: value that can go up or down (e.g. current queue depth)
+- **Histogram**: distribution of values (e.g. dispatch duration in milliseconds)
 
 Business metrics defined in this demo:
 
@@ -288,7 +288,7 @@ Prometheus, VictoriaMetrics, Thanos, Mimir.
 
 ---
 
-## The traceparent header — hop by hop
+## The traceparent header: hop by hop
 
 This is the key insight of the demo:
 
@@ -299,7 +299,7 @@ This is the key insight of the demo:
 | ANSP Publisher → Broker | **AMQP** Application Properties | `4bf9...4736` ← same | AMQP publish span ID |
 | Broker → Consumer | **AMQP** Application Properties | `4bf9...4736` ← same | consumer span ID |
 
-The `trace-id` never changes. It crosses the HTTP→AMQP protocol boundary through the AMQP Application Properties section — not the message body. The aviation payload is untouched.
+The `trace-id` never changes. It crosses the HTTP→AMQP protocol boundary through the AMQP Application Properties section, not the message body. The aviation payload is untouched.
 
 The `parent-id` updates at each service boundary, creating the parent-child span relationship that a trace backend renders as a waterfall timeline. Every span knows its parent. No span is orphaned.
 
@@ -310,7 +310,7 @@ version  trace-id (invariant)              parent-id (root span)   flags
   00   - 4bf92f3577b34da6a3ce929d0e0e4736 - 00f067aa0ba902b7     -  01
 ```
 
-Below it, each span in the timeline shows its own `span-id` — which becomes the `parent-id` in the traceparent of the next downstream service.
+Below it, each span in the timeline shows its own `span-id`, which becomes the `parent-id` in the traceparent of the next downstream service.
 
 ---
 
@@ -318,9 +318,9 @@ Below it, each span in the timeline shows its own `span-id` — which becomes th
 
 The Yellow Profile currently specifies AMQP 1.0 and HTTP/REST as protocol bindings but does not specify how trace context must cross those boundaries. This demo proves:
 
-> A `traceparent` received over HTTP can be preserved in AMQP 1.0 Application Properties, maintaining a single Trace ID end-to-end — without modifying the aviation payload.
+> A `traceparent` received over HTTP can be preserved in AMQP 1.0 Application Properties, maintaining a single Trace ID end-to-end, without modifying the aviation payload.
 
-One 32-character identifier (`traceId`) created at the moment the airport dispatched the DNOTAM is present in every artefact — HTTP headers, AMQP Application Properties, structured logs, and distributed trace spans — across three independent technology stacks. This is the wire-level requirement the SFG proposes to add to SPEC-170.
+One 32-character identifier (`traceId`) created at the moment the airport dispatched the DNOTAM is present in every artefact (HTTP headers, AMQP Application Properties, structured logs, and distributed trace spans) across three independent technology stacks. This is the wire-level requirement the SFG proposes to add to SPEC-170.
 
 ---
 
