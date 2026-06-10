@@ -157,11 +157,11 @@ public partial class AmqpConsumerService : BackgroundService
             activity?.SetStatus(ActivityStatusCode.Error, "Invalid runway code");
             ValidationFailures.Add(1,
                 new KeyValuePair<string, object?>("notam.aerodrome", notam?.Aerodrome));
-            SwimLogger.ValidationFailure(_logger, $"Invalid runway code '{notam?.Runway}' for aerodrome {notam?.Aerodrome} | originated by {orgName} ({orgIcao})", notam, traceparent);
+            SwimLogger.ValidationFailure(_logger, $"Invalid runway code '{notam?.Runway}' for aerodrome {notam?.Aerodrome}", notam, traceparent, orgIcao);
         }
         else
         {
-            SwimLogger.OperationalEvent(_logger, $"DNOTAM integrated for flight operation at {notam?.Aerodrome} | originated by {orgName} ({orgIcao})", notam, traceparent);
+            SwimLogger.OperationalEvent(_logger, $"DNOTAM integrated for flight operation at {notam?.Aerodrome}", notam, traceparent, orgIcao);
         }
 
         var elapsedMs = Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds;

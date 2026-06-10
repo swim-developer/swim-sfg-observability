@@ -1,5 +1,5 @@
 {
-  "title": "SWIM dNOTAM \u2014 Distributed Tracing Demo",
+  "title": "SWIM dNOTAM — Distributed Tracing Demo",
   "uid": "swim-sfg-demo",
   "version": 2,
   "schemaVersion": 39,
@@ -224,7 +224,7 @@
     {
       "id": 6,
       "type": "table",
-      "title": "Service Map \u2014 connections via Prometheus",
+      "title": "Service Map — connections via Prometheus",
       "description": "Service edges from traces_service_graph_request_total (Tempo metrics_generator)",
       "gridPos": {
         "h": 9,
@@ -377,22 +377,6 @@
       }
     },
     {
-      "id": 11,
-      "type": "text",
-      "title": "Participating Organisations",
-      "description": "Each service runs under a distinct service.namespace identifying its organisation. W3C Baggage propagates org context (org.icao, org.name, org.role) across every protocol boundary alongside the traceparent.",
-      "gridPos": {
-        "h": 7,
-        "w": 24,
-        "x": 0,
-        "y": 13
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "## Who is who in this trace\n\n| Organisation | `service.namespace` | Service | Role in SWIM |\n|---|---|---|---|\n| **Aeroporto de Lisboa** | `aeroporto-de-lisboa` | `dnotam-originator` | Airport Operator \u2014 dispatches the DNOTAM over HTTP |\n| **NAV Portugal** | `nav-portugal` | `dnotam-publisher` | ANSP/AISP \u2014 receives HTTP, publishes to AMQP broker |\n| **TAP Air Portugal** | `tap-air-portugal` | `dnotam-consumer` | Airline \u2014 consumes from AMQP, validates, logs |\n\n**What W3C Baggage carries across every protocol boundary:**\n```\nbaggage: org.icao=LPPT, org.name=aeroporto-de-lisboa, org.role=airport-operator\n```\nThis string travels in the HTTP `baggage` header and in AMQP Application Properties \u2014 alongside `traceparent`, never inside the aviation payload.\n\n**Where to see this in the demo:**\n- Consumer logs (panel below): `originated by aeroporto-de-lisboa (LPPT)`\n- Consumer spans in Explore: attributes `org.icao`, `org.name`, `org.role`\n- Federation Hub API: `/v1/federation/traces/{traceId}` \u2192 `participants` shows `aeroporto-de-lisboa / dnotam-originator`"
-      }
-    },
-    {
       "id": 9,
       "type": "logs",
       "title": "All Service Layer Events",
@@ -400,7 +384,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 13
       },
       "datasource": {
         "uid": "loki",
@@ -430,7 +414,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 22
       },
       "datasource": {
         "uid": "loki",
@@ -460,7 +444,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 29
       },
       "datasource": {
         "uid": "prometheus",

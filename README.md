@@ -30,6 +30,10 @@ The `traceparent` injected into AMQP Application Properties is a plain string de
 
 Every log line emitted by the application carries three mandatory fields: `swim_perimeter: SERVICE_LAYER`, `event_type` (`OPERATIONAL_EVENT` or `VALIDATION_FAILURE`), and `service_context: dNOTAM`. This taxonomy is enforced in code, not in log filters, not in dashboards, not in post-processing. Infrastructure events (broker connections, container health, network retries) are never written by the application. What reaches Loki is exclusively business semantics.
 
+### "In a multi-organisation trace, who is who?"
+
+Each service declares its owning organisation via the OpenTelemetry `service.namespace` resource attribute (`aeroporto-de-lisboa`, `nav-portugal`, `tap-air-portugal`). The originator also injects a W3C `baggage` header carrying `org.icao=LPPT` alongside the `traceparent`. Both travel through every protocol boundary using the same `inject`/`extract` mechanism. The consumer logs the ICAO code as a structured field (`org_icao=LPPT`); the Federation Hub exposes it in the REST response. See [Organisation identity](docs/deep-dive.md#organisation-identity-and-context-propagation) in the deep dive.
+
 ---
 
 ## Architecture
