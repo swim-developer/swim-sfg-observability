@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -51,6 +52,14 @@ public class NotamPublisher {
         span.setAttribute("notam.aerodrome", request.aerodrome());
         span.setAttribute("notam.type", request.notamType());
         span.setAttribute("notam.runway", request.runway());
+
+        Baggage baggage = Baggage.current();
+        String orgIcao = baggage.getEntryValue("org.icao");
+        String orgName = baggage.getEntryValue("org.name");
+        String orgRole = baggage.getEntryValue("org.role");
+        if (orgIcao != null) span.setAttribute("org.icao", orgIcao);
+        if (orgName != null) span.setAttribute("org.name", orgName);
+        if (orgRole != null) span.setAttribute("org.role", orgRole);
 
         try {
             String payload = mapper.writeValueAsString(request);

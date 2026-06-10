@@ -166,6 +166,10 @@ async def _publish(payload: dict) -> dict:
         ctx = baggage_api.set_baggage("org.name", "aeroporto-de-lisboa", context=ctx)
         ctx = baggage_api.set_baggage("org.role", "airport-operator", context=ctx)
 
+        span.set_attribute("org.icao", "LPPT")
+        span.set_attribute("org.name", "aeroporto-de-lisboa")
+        span.set_attribute("org.role", "airport-operator")
+
         headers = {}
         inject(headers, context=ctx)
         traceparent = headers.get("traceparent", "")
