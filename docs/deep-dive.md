@@ -165,12 +165,12 @@ In this demo:
 
 | Organisation | `service.namespace` | `service.name` |
 |---|---|---|
-| Aeroporto de Lisboa (Airport Operator) | `aeroporto-de-lisboa` | `dnotam-originator` |
+| Lisbon Airport (Airport Operator) | `lisbon-airport` | `dnotam-originator` |
 | NAV Portugal (ANSP/AISP) | `nav-portugal` | `dnotam-publisher` |
 | TAP Air Portugal (Airline) | `tap-air-portugal` | `dnotam-consumer` |
 | Network Manager (Federation Hub) | `network-manager` | `federation-hub` |
 
-The `service.namespace` is visible in every span in Grafana Explore (Resource attributes section), and the Federation Hub API returns `"org": "aeroporto-de-lisboa"` for each participant in the trace.
+The `service.namespace` is visible in every span in Grafana Explore (Resource attributes section), and the Federation Hub API returns `"org": "lisbon-airport"` for each participant in the trace.
 
 ---
 
@@ -181,7 +181,7 @@ The `service.namespace` is visible in every span in Grafana Explore (Resource at
 Wire representation:
 ```
 traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
-baggage:     org.icao=LPPT,org.name=aeroporto-de-lisboa,org.role=airport-operator
+baggage:     org.icao=LPPT,org.name=lisbon-airport,org.role=airport-operator
 ```
 
 The `baggage` header travels in HTTP headers and in AMQP Application Properties, alongside `traceparent`, through the same `inject`/`extract` mechanism, using the same `CompositePropagator`.
@@ -191,12 +191,12 @@ In this demo, the originator (Aeroporto de Lisboa) sets:
 | Baggage key | Value |
 |---|---|
 | `org.icao` | `LPPT` |
-| `org.name` | `aeroporto-de-lisboa` |
+| `org.name` | `lisbon-airport` |
 | `org.role` | `airport-operator` |
 
 These values propagate automatically through the publisher (Quarkus SmallRye Reactive Messaging with `tracing-enabled=true`) and are extracted by the consumer, which logs:
 ```
-DNOTAM integrated for flight operation at LPPT | originated by aeroporto-de-lisboa (LPPT)
+DNOTAM integrated for flight operation at LPPT | notam_id=A0001/26 aerodrome=LPPT runway=27R org_icao=LPPT service_context=dNOTAM traceparent=00-...
 ```
 
 and sets span attributes `org.icao`, `org.name`, `org.role` on the `dnotam.process` span, visible in Grafana Explore.

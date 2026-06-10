@@ -33,7 +33,7 @@ _resource = Resource.create({
     "service.name": SERVICE_NAME,
     "service.version": SERVICE_VERSION,
     "deployment.environment": os.getenv("DEPLOYMENT_ENV", "local"),
-    "service.namespace": "aeroporto-de-lisboa",
+    "service.namespace": "lisbon-airport",
 })
 
 _otlp_endpoint = os.getenv("OTLP_ENDPOINT", "http://tempo:4317")
@@ -155,6 +155,12 @@ async def publish_invalid():
 
 async def _publish(payload: dict) -> dict:
     start = datetime.now(timezone.utc)
+
+    root_span = trace.get_current_span()
+    root_span.set_attribute("org.icao", "LPPT")
+    root_span.set_attribute("org.name", "lisbon-airport")
+    root_span.set_attribute("org.role", "airport-operator")
+
     with _tracer.start_as_current_span("dnotam.dispatch") as span:
         span.set_attribute("notam.id", payload["notam_id"])
         span.set_attribute("notam.aerodrome", payload["aerodrome"])
@@ -163,11 +169,11 @@ async def _publish(payload: dict) -> dict:
 
         ctx = context.get_current()
         ctx = baggage_api.set_baggage("org.icao", "LPPT", context=ctx)
-        ctx = baggage_api.set_baggage("org.name", "aeroporto-de-lisboa", context=ctx)
+        ctx = baggage_api.set_baggage("org.name", "lisbon-airport", context=ctx)
         ctx = baggage_api.set_baggage("org.role", "airport-operator", context=ctx)
 
         span.set_attribute("org.icao", "LPPT")
-        span.set_attribute("org.name", "aeroporto-de-lisboa")
+        span.set_attribute("org.name", "lisbon-airport")
         span.set_attribute("org.role", "airport-operator")
 
         headers = {}
