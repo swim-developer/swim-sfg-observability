@@ -316,46 +316,35 @@ Dispatch any DNOTAM again; the trace will appear in both Grafana (org) and Hub G
 
 ---
 
-## Makefile reference
+## Command reference
 
-```
-# Build
-make build              Build all 4 service images (incl. federation hub)
-make build-all          Alias for make build
-make build-originator   Build originator image only
-make build-publisher    Build publisher image (Maven compile + container)
-make build-consumer     Build consumer image
-make build-hub          Build federation-hub image
+| Action | macOS / Linux | Windows (PowerShell) |
+|---|---|---|
+| **Build** | | |
+| Build all 4 images | `make build` | `.\scripts\windows\build.ps1` |
+| **Main stack** | | |
+| Start full stack (9 containers) | `make up` | `.\scripts\windows\up.ps1` |
+| Stop full stack | `make down` | `.\scripts\windows\down.ps1` |
+| Show container status | `make status` | `.\scripts\windows\status.ps1` |
+| **Federation hub** | | |
+| Start hub stack (3 containers) | `make hub-up` | `.\scripts\windows\hub-up.ps1` |
+| Stop hub stack | `make hub-down` | `.\scripts\windows\hub-down.ps1` |
+| **Demo** | | |
+| Dispatch valid DNOTAM (runway 27R) | `make demo-valid` | `.\scripts\windows\demo-valid.ps1` |
+| Dispatch invalid DNOTAM (runway ZZ9) | `make demo-invalid` | `.\scripts\windows\demo-invalid.ps1` |
+| **Logs** | | |
+| Tail consumer logs | `make logs-consumer` | `.\scripts\windows\logs-consumer.ps1` |
+| Tail publisher logs | `make logs-publisher` | `.\scripts\windows\logs-publisher.ps1` |
 
-# Main stack
-make up                 Start full stack (9 containers)
-make down               Stop full stack
-make status             Show container status
-make infra-up           Start infrastructure only (Mode B)
-make infra-down         Stop infrastructure
+**Service URLs** (open in browser after `make up` / `up.ps1`):
 
-# Federation hub
-make federation-network Create swim-federation network (run once after install)
-make hub-up             Start Federation Hub stack (3 containers)
-make hub-down           Stop Federation Hub stack
-
-# Demo
-make demo-valid         Scenario 1 — valid DNOTAM (runway 27R)
-make demo-invalid       Scenario 2 — invalid DNOTAM (runway ZZ9)
-
-# Inspect
-make logs-consumer      Tail consumer structured logs
-make logs-publisher     Tail publisher structured logs
-make open-grafana       Open Grafana dashboard (localhost:3000)
-make open-hub           Open Federation Hub UI (localhost:18080)
-make open-hub-grafana   Open Hub Grafana (localhost:13000)
-make open-artemis       Open Artemis console (localhost:8161)
-
-# Dev mode (Mode B — services run locally)
-make dev-originator     Run originator locally (port 8000)
-make dev-publisher      Run publisher in Quarkus dev mode (port 8080)
-make dev-consumer       Run consumer locally (.NET)
-```
+| Service | URL |
+|---|---|
+| Originator UI | http://localhost:8000 |
+| Grafana (local stack) | http://localhost:3000 |
+| Grafana (federation hub) | http://localhost:13000 |
+| Federation Hub API | http://localhost:18080/v1/federation/traces/{traceId} |
+| Artemis console | http://localhost:8161 (login: admin / admin) |
 
 ---
 
