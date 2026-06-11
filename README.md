@@ -318,23 +318,23 @@ Dispatch any DNOTAM again; the trace will appear in both Grafana (org) and Hub G
 
 ## Command reference
 
-| Action | macOS / Linux | Windows (PowerShell) |
+| Description | macOS / Linux | Windows (PowerShell) |
 |---|---|---|
 | **Build** | | |
-| Build all 4 images | `make build` | `.\scripts\windows\build.ps1` |
+| Build all 4 service images (originator, publisher, consumer, federation hub) | `make build` | `.\scripts\windows\build.ps1` |
 | **Main stack** | | |
-| Start full stack (9 containers) | `make up` | `.\scripts\windows\up.ps1` |
+| Start full stack — 9 containers (broker, collector, tempo, loki, prometheus, grafana, 3 services) | `make up` | `.\scripts\windows\up.ps1` |
 | Stop full stack | `make down` | `.\scripts\windows\down.ps1` |
-| Show container status | `make status` | `.\scripts\windows\status.ps1` |
+| Show status of all running sfg containers | `make status` | `.\scripts\windows\status.ps1` |
 | **Federation hub** | | |
-| Start hub stack (3 containers) | `make hub-up` | `.\scripts\windows\hub-up.ps1` |
-| Stop hub stack | `make hub-down` | `.\scripts\windows\hub-down.ps1` |
+| Start federation hub stack — 3 extra containers (hub app, hub tempo, hub grafana) | `make hub-up` | `.\scripts\windows\hub-up.ps1` |
+| Stop federation hub stack | `make hub-down` | `.\scripts\windows\hub-down.ps1` |
 | **Demo** | | |
-| Dispatch valid DNOTAM (runway 27R) | `make demo-valid` | `.\scripts\windows\demo-valid.ps1` |
-| Dispatch invalid DNOTAM (runway ZZ9) | `make demo-invalid` | `.\scripts\windows\demo-invalid.ps1` |
+| Dispatch a valid DNOTAM (runway 27R, aerodrome LPPT) — generates a successful trace | `make demo-valid` | `.\scripts\windows\demo-valid.ps1` |
+| Dispatch an invalid DNOTAM (runway ZZ9) — generates a VALIDATION_FAILURE trace | `make demo-invalid` | `.\scripts\windows\demo-invalid.ps1` |
 | **Logs** | | |
-| Tail consumer logs | `make logs-consumer` | `.\scripts\windows\logs-consumer.ps1` |
-| Tail publisher logs | `make logs-publisher` | `.\scripts\windows\logs-publisher.ps1` |
+| Tail structured logs from the consumer (shows OPERATIONAL_EVENT and VALIDATION_FAILURE entries) | `make logs-consumer` | `.\scripts\windows\logs-consumer.ps1` |
+| Tail structured logs from the publisher | `make logs-publisher` | `.\scripts\windows\logs-publisher.ps1` |
 
 **Service URLs** (open in browser after `make up` / `up.ps1`):
 
