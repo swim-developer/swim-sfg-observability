@@ -321,11 +321,18 @@ Dispatch any DNOTAM again; the trace will appear in both Grafana (org) and Hub G
 | Description | macOS / Linux | Windows (PowerShell) |
 |---|---|---|
 | **Build** | | |
-| Build all 4 service images (originator, publisher, consumer, federation hub) | `make build` | `.\scripts\windows\build.ps1` |
+| Build all 4 service images | `make build` | `.\scripts\windows\build.ps1` |
+| Build originator image only | `make build-originator` | `.\scripts\windows\build-originator.ps1` |
+| Build publisher image only (Maven compile inside container) | `make build-publisher` | `.\scripts\windows\build-publisher.ps1` |
+| Build consumer image only | `make build-consumer` | `.\scripts\windows\build-consumer.ps1` |
+| Build federation hub image only | `make build-hub` | `.\scripts\windows\build-hub.ps1` |
 | **Main stack** | | |
+| Create the `swim-federation` Podman network (run once after install) | `make federation-network` | `.\scripts\windows\federation-network.ps1` |
 | Start full stack — 9 containers (broker, collector, tempo, loki, prometheus, grafana, 3 services) | `make up` | `.\scripts\windows\up.ps1` |
 | Stop full stack | `make down` | `.\scripts\windows\down.ps1` |
 | Show status of all running sfg containers | `make status` | `.\scripts\windows\status.ps1` |
+| Start infrastructure only — broker, collector, tempo, loki, prometheus, grafana (Mode B dev) | `make infra-up` | `.\scripts\windows\infra-up.ps1` |
+| Stop infrastructure | `make infra-down` | `.\scripts\windows\infra-down.ps1` |
 | **Federation hub** | | |
 | Start federation hub stack — 3 extra containers (hub app, hub tempo, hub grafana) | `make hub-up` | `.\scripts\windows\hub-up.ps1` |
 | Stop federation hub stack | `make hub-down` | `.\scripts\windows\hub-down.ps1` |
@@ -335,6 +342,15 @@ Dispatch any DNOTAM again; the trace will appear in both Grafana (org) and Hub G
 | **Logs** | | |
 | Tail structured logs from the consumer (shows OPERATIONAL_EVENT and VALIDATION_FAILURE entries) | `make logs-consumer` | `.\scripts\windows\logs-consumer.ps1` |
 | Tail structured logs from the publisher | `make logs-publisher` | `.\scripts\windows\logs-publisher.ps1` |
+| **Open in browser** | | |
+| Open Grafana dashboard (local stack) | `make open-grafana` | `.\scripts\windows\open-grafana.ps1` |
+| Open Artemis management console | `make open-artemis` | `.\scripts\windows\open-artemis.ps1` |
+| Open Federation Hub API | `make open-hub` | `.\scripts\windows\open-hub.ps1` |
+| Open Hub Grafana | `make open-hub-grafana` | `.\scripts\windows\open-hub-grafana.ps1` |
+| **Dev mode** (requires language runtimes installed locally) | | |
+| Run originator locally against containerised infra (port 8000) | `make dev-originator` | — |
+| Run publisher in Quarkus dev mode against containerised infra (port 8080) | `make dev-publisher` | — |
+| Run consumer locally against containerised infra | `make dev-consumer` | — |
 
 **Service URLs** (open in browser after `make up` / `up.ps1`):
 
