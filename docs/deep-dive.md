@@ -341,11 +341,17 @@ Below it, each span in the timeline shows its own `span-id`, which becomes the `
 
 ## Why this matters for SPEC-170
 
-The Yellow Profile currently specifies AMQP 1.0 and HTTP/REST as protocol bindings but does not specify how trace context must cross those boundaries. This demo proves:
+The SWIM Foundation Group use case for distributed tracing (authored by Stefan Keller, DFS) identifies two gaps in the current Yellow Profile and proposes two **optional** requirements to fill them:
 
-> A `traceparent` received over HTTP can be preserved in AMQP 1.0 Application Properties, maintaining a single Trace ID end-to-end, without modifying the aviation payload.
+> **Optional requirement:** https bindings will honour the `traceparent` header (W3C Trace Context)
 
-One 32-character identifier (`traceId`) created at the moment the airport dispatched the DNOTAM is present in every artefact (HTTP headers, AMQP Application Properties, structured logs, and distributed trace spans) across three independent technology stacks. This is the wire-level requirement the SFG proposes to add to SPEC-170.
+> **Optional requirement:** amqps bindings will provide in the publication a standardised reference to the underlying subscription
+
+The first requirement is what this demo validates end-to-end. The `traceparent` enters over HTTP and exits inside the AMQP Application Properties, invariant across the protocol boundary, without modifying the aviation payload. One 32-character identifier is present in every artefact (HTTP headers, AMQP Application Properties, structured logs, and distributed trace spans) across three independent technology stacks.
+
+The second requirement refers to a reference to the SWIM subscription that caused the message to be delivered, a management concept distinct from the distributed trace context. The demo does not address subscription referencing; that is a separate binding extension.
+
+The purpose of this demo is to validate the technical feasibility of the first requirement and to show that it is implementable with any AMQP 1.0 client and any HTTP library, with no dependency on a specific vendor or SDK. The SFG working group decides whether and how to formalise these requirements in SPEC-170.
 
 ---
 
