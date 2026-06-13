@@ -4,6 +4,19 @@ Proof-of-concept for the **SWIM Foundation Group (SFG)** validating the proposal
 
 ---
 
+## The proposal in two lines
+
+**What is being proposed for SPEC-170:**
+
+1. HTTP bindings must honour the W3C `traceparent` header ([W3C Trace Context](https://www.w3.org/TR/trace-context/))
+2. AMQP bindings must propagate `traceparent` as a string value in the AMQP 1.0 Application Properties section
+
+These are wire-level requirements. They do not mandate any specific software, SDK, or vendor. Any AMQP 1.0 client, any HTTP library, and any observability backend that reads a plain string can satisfy them.
+
+OpenTelemetry, Grafana Tempo, Loki, and Prometheus are the reference implementation stack used to build this demo. They are not part of the proposal.
+
+---
+
 ## Why this matters
 
 The Yellow Profile mandates AMQP 1.0 and HTTP/REST as protocol bindings, but says nothing about how observability metadata crosses protocol boundaries. In multi-provider environments (where an airport, an ANSP, and an airline each run independent infrastructure), a single operational transaction (a DNOTAM) crosses multiple organisation borders, each potentially using a different technology stack.
