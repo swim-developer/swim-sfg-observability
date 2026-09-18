@@ -40,7 +40,7 @@ sequenceDiagram
     participant LIS as Lisbon Airport<br/>(Python)
     participant NAV as NAV Portugal / ANSP<br/>(Java)
     participant BRK as AMQP Broker
-    participant TAP as TAP Air Portugal<br/>(C#)
+    participant TAP as TAP Air Portugal<br/>(dotnet)
 
     LIS->>NAV: HTTP POST /publish<br/>header: traceparent
     NAV->>BRK: AMQP message<br/>application-properties: {traceparent: "..."}
@@ -91,4 +91,4 @@ The standard is W3C — it already exists.
 - Valid DNOTAM → green trace → three organisations, one Trace ID
 - Invalid DNOTAM (wrong runway) → red span → exact failure point identified
 
-**Stack:** Python · Java/Quarkus · C#/.NET · ActiveMQ Artemis · Grafana · Tempo · Loki
+**Stack:** Python · Java/Quarkus · dotnet · ActiveMQ Artemis · Grafana · Tempo · Loki
