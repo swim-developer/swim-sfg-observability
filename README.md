@@ -129,6 +129,8 @@ flowchart TB
     style HUB fill:none,stroke:#b8860b,stroke-width:3px,color:#b8860b
 ```
 
+![Federation Hub Overview](docs/assets/federation-hub-overview.png)
+
 > **Key insight:** the three services run at different organisations with different technology stacks. The `traceparent` is the only thing they share. The OTel Collector strips internal attributes (host names, process IDs, SDK versions) before forwarding to the Federation Hub; each organisation controls what it exposes.
 
 ### What is `traceparent`?

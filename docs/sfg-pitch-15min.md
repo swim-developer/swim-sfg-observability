@@ -115,6 +115,8 @@ This is also not an exclusive choice. The same result can be achieved with any l
 Each organisation runs its own observability stack.  
 No organisation shares internal logs with others.
 
+![Federation Hub Overview](assets/federation-hub-overview.png)
+
 An OTel Collector at each site forwards sanitised spans — stripped of internal infrastructure data — to a **Federation Hub**.
 
 The Hub reconstructs the full transaction chain from the shared `trace-id`:
