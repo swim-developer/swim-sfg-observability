@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eurocontrol Federation Hub</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0d1117; color: #e6e6e6; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+        header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #21262d; }
+        header h1 { font-size: 1.05rem; font-weight: 600; color: #f0883e; letter-spacing: 0.1em; }
+        header p { font-size: 0.75rem; color: #6e7681; margin-top: 0.2rem; }
+        .container { padding: 1.5rem; max-width: 900px; margin: 0 auto; }
+        .search { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        input { flex: 1; min-width: 200px; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 0.6rem 0.85rem; color: #e6e6e6; font-family: 'Courier New', monospace; font-size: 0.82rem; outline: none; }
+        input:focus { border-color: #f0883e; }
+        button { background: #f0883e; color: #0d1117; border: none; border-radius: 6px; padding: 0.6rem 1.25rem; font-size: 0.82rem; font-weight: 700; cursor: pointer; letter-spacing: 0.05em; transition: opacity 0.15s; white-space: nowrap; }
+        button:hover { opacity: 0.85; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .error { background: #2d1a1a; border: 1px solid #f85149; border-radius: 6px; padding: 0.75rem 1rem; color: #f85149; font-size: 0.82rem; margin-bottom: 1.25rem; }
+        .summary { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.1rem 1.25rem; margin-bottom: 1.25rem; }
+        .summary-row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .summary-item { display: flex; flex-direction: column; gap: 0.2rem; }
+        .summary-label { font-size: 0.68rem; color: #6e7681; text-transform: uppercase; letter-spacing: 0.1em; }
+        .summary-value { font-size: 0.88rem; font-family: 'Courier New', monospace; }
+        .participants { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+        .pill { background: #1c2d3f; border: 1px solid #1f6feb; border-radius: 20px; padding: 0.3rem 0.75rem; font-size: 0.75rem; color: #79c0ff; font-weight: 600; }
+        .timeline { display: flex; flex-direction: column; gap: 0.4rem; }
+        .span-row { display: grid; grid-template-columns: 180px 1fr 90px 70px; align-items: center; gap: 0.5rem; font-size: 0.77rem; background: #161b22; border: 1px solid #21262d; border-radius: 6px; padding: 0.45rem 0.75rem; }
+        .span-row.error { border-left: 3px solid #f85149; }
+        .span-service { color: #79c0ff; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .span-op { color: #c9d1d9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .span-bar-wrap { background: #0d1117; border-radius: 3px; overflow: hidden; height: 8px; }
+        .span-bar { height: 100%; background: #1f6feb; border-radius: 3px; min-width: 4px; }
+        .span-bar.error { background: #f85149; }
+        .span-dur { text-align: right; color: #6e7681; font-family: 'Courier New', monospace; }
+        .span-status { text-align: right; }
+        .ok { color: #28a745; font-weight: 600; font-size: 0.7rem; }
+        .fail { color: #f85149; font-weight: 600; font-size: 0.7rem; }
+        .section-label { font-size: 0.68rem; color: #6e7681; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
+        .hidden { display: none; }
+        .traceparent-box { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; font-family: 'Courier New', monospace; }
+        .tp-string { font-size: 0.82rem; color: #79c0ff; word-break: break-all; margin-bottom: 0.75rem; }
+        .tp-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+        .tp-field { display: flex; flex-direction: column; gap: 0.2rem; }
+        .tp-field-label { font-size: 0.62rem; color: #6e7681; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .tp-field-value { font-size: 0.78rem; padding: 0.3rem 0.5rem; border-radius: 4px; word-break: break-all; }
+        .tp-version { background: #1a2a1a; color: #3fb950; border: 1px solid #238636; }
+        .tp-traceid { background: #1c2d3f; color: #79c0ff; border: 1px solid #1f6feb; }
+        .tp-parentid { background: #2d2214; color: #f0883e; border: 1px solid #9e6a03; }
+        .tp-flags { background: #2a1a2a; color: #bc8cff; border: 1px solid #6e40c9; }
+        .tp-note { font-size: 0.68rem; color: #6e7681; margin-top: 0.65rem; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .span-id-cell { font-size: 0.65rem; font-family: 'Courier New', monospace; color: #6e7681; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        @media (max-width: 600px) { .span-row { grid-template-columns: 1fr 1fr; } .span-bar-wrap { display: none; } .tp-fields { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>EUROCONTROL FEDERATION HUB</h1>
+        <p>SWIM Telemetry Federation — Cross-Organization Trace Correlation Service</p>
+    </header>
+    <div class="container">
+        <div class="search">
+            <input id="trace-input" type="text" placeholder="Enter Trace ID (32 hex chars)…" maxlength="32" />
+            <button id="btn-query" onclick="query()">Query Federation</button>
+        </div>
+        <div id="error" class="error hidden"></div>
+        <div id="result" class="hidden">
+            <div class="summary" id="summary"></div>
+            <div class="section-label">W3C Trace Context</div>
+            <div class="traceparent-box" id="traceparent-box"></div>
+            <div class="section-label">Participating Organizations</div>
+            <div class="participants" id="participants"></div>
+            <div class="section-label">Distributed Trace Timeline</div>
+            <div class="timeline" id="timeline"></div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('trace-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter') query();
+        });
+
+        async function query() {
+            const traceId = document.getElementById('trace-input').value.trim();
+            if (!traceId) return;
+
+            const btn = document.getElementById('btn-query');
+            btn.disabled = true;
+            hide('error');
+            hide('result');
+
+            try {
+                const res = await fetch(`/v1/federation/traces/${traceId}`);
+                if (!res.ok) {
+                    const msg = res.status === 404 ? 'Trace not found in the federation hub. Ensure the trace was dispatched and wait a few seconds.' : `Error ${res.status}`;
+                    showError(msg);
+                    return;
+                }
+                const data = await res.json();
+                render(data);
+            } catch (e) {
+                showError(e.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function b64ToHex(b64) {
+            try {
+                return atob(b64).split('').map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+            } catch { return b64; }
+        }
+
+        function render(data) {
+            const maxDur = data.totalDurationMicros || 1;
+            const orgCount = Array.isArray(data.participants) ? data.participants.length : data.participants.size || Object.keys(data.participants).length;
+
+            document.getElementById('summary').innerHTML = `
+                <div class="summary-row">
+                    <div class="summary-item"><span class="summary-label">Trace ID</span><span class="summary-value">${data.traceId}</span></div>
+                    <div class="summary-item"><span class="summary-label">Total Duration</span><span class="summary-value">${(data.totalDurationMicros / 1000).toFixed(2)} ms</span></div>
+                    <div class="summary-item"><span class="summary-label">Span Count</span><span class="summary-value">${data.spans.length}</span></div>
+                    <div class="summary-item"><span class="summary-label">Organizations</span><span class="summary-value">${orgCount}</span></div>
+                </div>`;
+
+            const sorted = [...data.spans].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+            const rootSpan = sorted.find(s => !s.parentSpanId) || sorted[0];
+            const rootParentId = rootSpan ? b64ToHex(rootSpan.spanId) : '0000000000000000';
+            const tp = `00-${data.traceId}-${rootParentId}-01`;
+
+            document.getElementById('traceparent-box').innerHTML = `
+                <div class="tp-string">${tp}</div>
+                <div class="tp-fields">
+                    <div class="tp-field">
+                        <span class="tp-field-label">Version</span>
+                        <span class="tp-field-value tp-version">00</span>
+                    </div>
+                    <div class="tp-field">
+                        <span class="tp-field-label">Trace ID — invariant across all hops</span>
+                        <span class="tp-field-value tp-traceid">${data.traceId}</span>
+                    </div>
+                    <div class="tp-field">
+                        <span class="tp-field-label">Parent Span ID — changes at each boundary</span>
+                        <span class="tp-field-value tp-parentid">${rootParentId}</span>
+                    </div>
+                    <div class="tp-field">
+                        <span class="tp-field-label">Flags</span>
+                        <span class="tp-field-value tp-flags">01 (sampled)</span>
+                    </div>
+                </div>
+                <p class="tp-note">The Trace ID is the invariant identifier — it is the same in every HTTP header and every AMQP Application Property across all ${orgCount} organisations. The Parent Span ID updates at each service boundary, linking spans into a parent-child tree without modifying the aviation payload.</p>`;
+
+            const parts = document.getElementById('participants');
+            parts.innerHTML = '';
+            (Array.isArray(data.participants) ? data.participants : [...data.participants]).forEach(p => {
+                const pill = document.createElement('span');
+                pill.className = 'pill';
+                pill.textContent = p;
+                parts.appendChild(pill);
+            });
+
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+
+            sorted.forEach(span => {
+                const isErr = span.status === 'ERROR';
+                const pct = Math.max(4, Math.round((span.durationMicros / maxDur) * 100));
+                const spanHex = b64ToHex(span.spanId).substring(0, 16);
+                const row = document.createElement('div');
+                row.className = `span-row${isErr ? ' error' : ''}`;
+                row.innerHTML = `
+                    <span class="span-service">${span.service}</span>
+                    <span class="span-op">${span.operation}<br><span class="span-id-cell">span: ${spanHex}</span></span>
+                    <div class="span-bar-wrap"><div class="span-bar${isErr ? ' error' : ''}" style="width:${pct}%"></div></div>
+                    <span class="span-dur">${(span.durationMicros / 1000).toFixed(2)} ms</span>
+                    <span class="span-status"><span class="${isErr ? 'fail' : 'ok'}">${span.status}</span></span>`;
+                timeline.appendChild(row);
+            });
+
+            show('result');
+        }
+
+        function showError(msg) { document.getElementById('error').textContent = msg; show('error'); }
+        function show(id) { document.getElementById(id).classList.remove('hidden'); }
+        function hide(id) { document.getElementById(id).classList.add('hidden'); }
+    </script>
+</body>
+</html>

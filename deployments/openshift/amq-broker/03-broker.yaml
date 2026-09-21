@@ -1,0 +1,21 @@
+apiVersion: broker.amq.io/v1beta1
+kind: ActiveMQArtemis
+metadata:
+  name: sfg-broker
+  namespace: swim-sfg-observability
+spec:
+  deploymentPlan:
+    size: 1
+    persistenceEnabled: false
+    requireLogin: false
+    jolokiaAgentEnabled: false
+    managementRBACEnabled: false
+  acceptors:
+    - name: amqp
+      protocols: amqp
+      port: 5672
+      expose: false
+  adminUser: admin
+  adminPassword: admin
+  console:
+    expose: true

@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+
+
+scrape_configs:
+  - job_name: dnotam-publisher
+    static_configs:
+      - targets: ["dnotam-publisher:8080"]
+    metrics_path: /q/metrics
+
+  - job_name: dnotam-consumer
+    static_configs:
+      - targets: ["dnotam-consumer:9464"]
+    metrics_path: /metrics
+
+  - job_name: dnotam-originator
+    static_configs:
+      - targets: ["dnotam-originator:9464"]
+    metrics_path: /metrics

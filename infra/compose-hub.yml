@@ -1,0 +1,52 @@
+services:
+
+  hub-tempo:
+    image: docker.io/grafana/tempo:latest
+    container_name: sfg-hub-tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    ports:
+      - "13200:3200"
+    volumes:
+      - ./tempo-hub.yaml:/etc/tempo.yaml:ro,z
+    networks:
+      - hub-default
+      - swim-federation
+
+  hub-grafana:
+    image: docker.io/grafana/grafana:12.4.4
+    container_name: sfg-hub-grafana
+    ports:
+      - "13000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Editor
+    volumes:
+      - ./grafana/hub-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro,z
+      - ./grafana/hub-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro,z
+      - ./grafana/hub-dashboards:/etc/grafana/dashboards:ro,z
+    networks:
+      - hub-default
+    depends_on:
+      - hub-tempo
+
+  federation-hub:
+    image: sfg-federation-hub:latest
+    container_name: sfg-federation-hub
+    ports:
+      - "18080:8080"
+    environment:
+      TEMPO_URL: http://sfg-hub-tempo:3200
+      OTLP_ENDPOINT: http://sfg-hub-tempo:4317
+    networks:
+      - hub-default
+      - swim-federation
+    depends_on:
+      - hub-tempo
+
+networks:
+  hub-default: {}
+  swim-federation:
+    name: swim-federation
+    external: true

@@ -1,0 +1,14 @@
+FROM registry.access.redhat.com/ubi9/dotnet-100 AS build
+USER 0
+WORKDIR /src
+COPY *.csproj .
+RUN dotnet restore
+COPY . .
+RUN dotnet publish -c Release -o /app/publish --no-restore
+
+FROM registry.access.redhat.com/ubi9/dotnet-100-runtime
+WORKDIR /opt/app-root/src
+COPY --from=build /app/publish .
+USER 1001
+EXPOSE 9464
+ENTRYPOINT ["dotnet", "DnotamConsumer.dll"]

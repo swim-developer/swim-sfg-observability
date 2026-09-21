@@ -1,0 +1,43 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dnotam-consumer-config
+  namespace: swim-sfg-observability
+data:
+  AMQP_HOST: sfg-broker-hdls-svc
+  AMQP_PORT: "5672"
+  OTLP_ENDPOINT: http://tempo:4317
+  LOKI_OTLP_ENDPOINT: http://loki:3100/otlp/v1/logs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dnotam-consumer
+  namespace: swim-sfg-observability
+  labels:
+    app: dnotam-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dnotam-consumer
+  template:
+    metadata:
+      labels:
+        app: dnotam-consumer
+    spec:
+      containers:
+        - name: dnotam-consumer
+          image: image-registry.openshift-image-registry.svc:5000/swim-sfg-observability/dnotam-consumer:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: dnotam-consumer-config
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+              cpu: 500m

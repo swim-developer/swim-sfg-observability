@@ -1,0 +1,12 @@
+apiVersion: 1
+
+datasources:
+  - name: Tempo (Hub)
+    uid: tempo
+    type: tempo
+    access: proxy
+    url: http://sfg-hub-tempo:3200
+    isDefault: true
+    jsonData:
+      nodeGraph:
+        enabled: true

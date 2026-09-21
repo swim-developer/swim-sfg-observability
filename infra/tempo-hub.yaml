@@ -1,0 +1,26 @@
+server:
+  http_listen_port: 3200
+
+live_store:
+  max_trace_idle: 2s
+  fail_on_high_lag: false
+
+query_frontend:
+  query_end_cutoff: 5s
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /tmp/tempo/blocks
+    wal:
+      path: /tmp/tempo/wal
