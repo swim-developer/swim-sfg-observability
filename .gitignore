@@ -37,3 +37,4 @@ docs/images/*.png
 # Private presentation notes (not for GitHub)
 docs/presentation-guide.md
 .cursor/
+*.cmproj
