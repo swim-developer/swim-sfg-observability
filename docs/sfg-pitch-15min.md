@@ -96,18 +96,6 @@ No AMQP 1.0 broker modification is required.
 
 > **Key point:** the three services use completely different technology stacks and run in independent environments. The `trace-id` does not break at the HTTP→AMQP boundary because it travels in the protocol envelope — not in the aviation payload. Any AMQP 1.0 client, in any language, from any vendor, can read and write it. Interoperability requires only the wire format, not a shared SDK or platform.
 
-### Why this demo uses OpenTelemetry
-
-The demo uses the OpenTelemetry SDK in all three services. This was a deliberate choice to show **how little effort is required**.
-
-Adding the OpenTelemetry library to a project is the entire implementation. There is no manual code to create the `traceparent` string, no code to inject it into HTTP headers, no code to extract it from AMQP Application Properties and pass it to the next service. The library does all of this automatically and transparently, in the background, the moment it is added to the classpath.
-
-The developer writes business logic. The library handles the wire format.
-
-This is also not an exclusive choice. The same result can be achieved with any library — or with no library at all, by writing the 55-character string directly. OpenTelemetry is the reference implementation because it is the most widely adopted open-source option. The wire behaviour is identical regardless of which tool writes the string.
-
-**The simplicity of implementation is part of the argument.** If standardising two strings in SPEC-170 is the requirement, and adding one library to a project is the implementation cost, the effort-to-benefit ratio is exceptional.
-
 ---
 
 ## The Global View
@@ -130,6 +118,18 @@ trace-id: 4bf92f3577b34da6a3ce929d0e0e4736
 ```
 
 One question. One answer. Across all organisations.
+
+### Why this demo uses OpenTelemetry
+
+The demo uses the OpenTelemetry SDK in all three services. This was a deliberate choice to show **how little effort is required**.
+
+Adding the OpenTelemetry library to a project is the entire implementation. There is no manual code to create the `traceparent` string, no code to inject it into HTTP headers, no code to extract it from AMQP Application Properties and pass it to the next service. The library does all of this automatically and transparently, in the background, the moment it is added to the classpath.
+
+The developer writes business logic. The library handles the wire format.
+
+This is also not an exclusive choice. The same result can be achieved with any library — or with no library at all, by writing the 55-character string directly. OpenTelemetry is the reference implementation because it is the most widely adopted open-source option. The wire behaviour is identical regardless of which tool writes the string.
+
+**The simplicity of implementation is part of the argument.** If standardising two strings in SPEC-170 is the requirement, and adding one library to a project is the implementation cost, the effort-to-benefit ratio is exceptional.
 
 ---
 
